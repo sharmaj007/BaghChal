@@ -1,0 +1,682 @@
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;margin:0;display:flex;justify-content:center;align-items:center;background-color:#f8f9fa}
+:root{
+  --color-background-primary: #ffffff;
+  --color-background-secondary: #f0f2f5;
+  --color-text-primary: #1a1a1b;
+  --color-text-secondary: #606770;
+  --color-border-secondary: #dddfe2;
+  --color-border-tertiary: #ccd0d5;
+}
+#app{padding:16px;width:100%;max-width:440px;margin:0 auto;font-family:sans-serif;background-color:#ffffff;border-radius:12px;min-height:360px}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border-width:0}
+.screen{display:none;width:100%}
+.screen.active{display:block}
+#lang-title{font-size:24px;font-weight:600;color:var(--color-text-primary);text-align:center;margin:16px 0 8px}
+#lang-sub{font-size:14px;color:var(--color-text-secondary);text-align:center;margin-bottom:28px}
+.lang-cards{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:28px}
+.lang-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-secondary);border-radius:12px;padding:26px 14px;text-align:center;cursor:pointer}
+.lang-card:active{transform:scale(0.97)}
+.lang-card.chosen{border:2px solid #378ADD}
+.lang-flag{font-size:36px;margin-bottom:10px;display:block;font-family:serif}
+.lang-name{font-size:16px;font-weight:600;color:var(--color-text-primary);margin-bottom:4px}
+.lang-native{font-size:14px;color:var(--color-text-secondary)}
+#sel-title{font-size:17px;font-weight:500;color:var(--color-text-primary);margin-bottom:5px}
+#sel-sub{font-size:13px;color:var(--color-text-secondary);margin-bottom:18px}
+.sel-cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.sel-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-lg);padding:16px 10px;text-align:center;cursor:pointer}
+.sel-card:active{transform:scale(0.97)}
+.sel-card.chosen{border:2px solid #c45a00}
+.sel-icon{width:44px;height:44px;border-radius:50%;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:500}
+.tiger-icon{background:#f5e0c8;color:#7a3500}
+.goat-icon-bg{background:#e8f0dc;color:#3b5a1a}
+.sel-name{font-size:14px;font-weight:500;color:var(--color-text-primary);margin-bottom:3px}
+.sel-desc{font-size:11px;color:var(--color-text-secondary);line-height:1.4}
+.btn-primary{width:100%;padding:11px;font-size:14px;font-weight:500;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);cursor:pointer;margin-bottom:8px}
+.btn-primary:disabled{opacity:0.4;cursor:default}
+.btn-secondary{width:100%;padding:9px;font-size:13px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-tertiary);background:transparent;color:var(--color-text-secondary);cursor:pointer}
+#top-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+#top-controls{display:flex;gap:6px;align-items:center}
+.icon-btn{padding:4px 8px;font-size:12px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-tertiary);background:transparent;color:var(--color-text-secondary);cursor:pointer}
+.icon-btn:disabled{opacity:0.3;cursor:default}
+#status-pill{font-size:12px;padding:4px 10px;border-radius:20px;font-weight:500}
+.pill-player{background:#e8f0dc;color:#27500a}
+.pill-cpu{background:#f5e0c8;color:#7a3500}
+.pill-win{background:#2e7d32;color:#ffffff;animation:flash 1s infinite}
+.pill-lose{background:#d32f2f;color:#ffffff;animation:flash 1s infinite}
+.pill-draw{background:#d32f2f;color:#ffffff;animation:flash 1s infinite}
+@keyframes flash {
+  0%, 100% { opacity: 1; transform: scale(1.1); }
+  50% { opacity: 0.7; transform: scale(1.2); }
+}
+#btn-back{font-size:12px;padding:4px 10px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-tertiary);background:transparent;color:var(--color-text-secondary);cursor:pointer}
+#scores{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.sc{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:7px 10px;text-align:center}
+.sc-label{font-size:10px;color:var(--color-text-secondary);margin-bottom:1px}
+.sc-val{font-size:18px;font-weight:500;color:var(--color-text-primary)}
+#board-wrap{background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:10px;margin-bottom:8px}
+canvas{display:block;margin:0 auto;max-width:100%;height:auto;cursor:pointer}
+#status-msg{font-size:12px;color:var(--color-text-secondary);text-align:center;margin-bottom:8px;min-height:16px}
+.msg-win{color:#2e7d32 !important; font-weight: 800; font-size: 18px !important; animation: bounce 0.5s infinite; padding: 10px; }
+.msg-lose, .msg-draw{color:#d32f2f !important; font-weight: 800; font-size: 18px !important; animation: flash-text 0.8s infinite; padding: 10px; }
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+@keyframes flash-text {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+#tray{background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:8px 12px;margin-bottom:8px}
+#tray-label{font-size:11px;color:var(--color-text-secondary);margin-bottom:5px}
+#tray-icons{display:flex;flex-wrap:wrap;gap:3px}
+#game-rule{font-size:11px;color:var(--color-text-secondary);text-align:center;padding:8px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);margin-top:4px;line-height:1.4}
+.gi{width:14px;height:14px;border-radius:50%;background:#e8e0c8;border:1.5px solid #8a7a5a;display:inline-block}
+.gi.used{background:var(--color-background-tertiary);border-color:var(--color-border-tertiary);opacity:0.25}
+#stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px;padding-top:16px;border-top:0.5px solid var(--color-border-secondary)}
+.stat-box{text-align:center}
+.stat-val{font-size:16px;font-weight:600;color:var(--color-text-primary)}
+.stat-lbl{font-size:10px;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.5px}
+#diff-sel{margin-bottom:14px}
+#diff-title{font-size:14px;font-weight:500;color:var(--color-text-primary);margin-bottom:8px;text-align:center}
+.diff-cards{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.diff-card{background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:10px;text-align:center;font-size:13px;cursor:pointer;color:var(--color-text-secondary)}
+.diff-card.chosen{border:1.5px solid #378ADD;color:var(--color-text-primary);background:var(--color-background-primary);font-weight:500}
+</style>
+
+<div id="app">
+<div id="screen-lang" class="screen active">
+  <h2 class="sr-only">Bagh-Chal board game — select language / भाषा छान्नुहोस्</h2>
+  <div id="lang-title">बाघ चाल</div>
+  <div id="lang-sub">Choose your language / भाषा छान्नुहोस्</div>
+  <div class="lang-cards">
+    <div class="lang-card" id="card-en" onclick="selectLang('en')">
+      <span class="lang-flag" style="font-size:28px;display:block;margin-bottom:8px">EN</span>
+      <div class="lang-name">English</div>
+      <div class="lang-native">English</div>
+    </div>
+    <div class="lang-card" id="card-np" onclick="selectLang('np')">
+      <span class="lang-flag" style="font-size:28px;display:block;margin-bottom:8px">ने</span>
+      <div class="lang-name">Nepali</div>
+      <div class="lang-native">नेपाली</div>
+    </div>
+  </div>
+  <button class="btn-primary" id="btn-lang-next" disabled onclick="goToSelect()">Continue</button>
+</div>
+
+<div id="screen-select" class="screen">
+  <div id="sel-title"></div>
+  <div id="sel-sub"></div>
+  <div class="sel-cards">
+    <div class="sel-card" id="card-goat" onclick="selectSide('G')">
+      <div class="sel-icon goat-icon-bg">G</div>
+      <div class="sel-name" id="goat-name"></div>
+      <div class="sel-desc" id="goat-desc"></div>
+    </div>
+    <div class="sel-card" id="card-tiger" onclick="selectSide('T')">
+      <div class="sel-icon tiger-icon">T</div>
+      <div class="sel-name" id="tiger-name"></div>
+      <div class="sel-desc" id="tiger-desc"></div>
+    </div>
+  </div>
+  <div id="diff-sel">
+    <div id="diff-title"></div>
+    <div class="diff-cards">
+      <div class="diff-card" id="diff-easy" onclick="selectDiff('easy')"></div>
+      <div class="diff-card" id="diff-hard" onclick="selectDiff('hard')"></div>
+    </div>
+  </div>
+  <button class="btn-primary" id="btn-start" disabled onclick="startGame()"></button>
+  <button class="btn-secondary" onclick="goToLang()"></button>
+  <div id="stats">
+    <div class="stat-box"><div class="stat-val" id="stat-goat">0</div><div class="stat-lbl" id="lbl-stat-goat">Goat Wins</div></div>
+    <div class="stat-box"><div class="stat-val" id="stat-tiger">0</div><div class="stat-lbl" id="lbl-stat-tiger">Tiger Wins</div></div>
+  </div>
+</div>
+
+<div id="screen-game" class="screen">
+  <div id="top-bar">
+    <span id="status-pill" class="pill-player"></span>
+    <div id="top-controls">
+      <button id="btn-sound" class="icon-btn" onclick="toggleSound()" title="Sound On/Off">🔊</button>
+      <button id="btn-undo" class="icon-btn" onclick="undoMove()" disabled title="Undo Move">↩️</button>
+      <button id="btn-back" onclick="goToSelect()"></button>
+    </div>
+  </div>
+  <div id="scores">
+    <div class="sc"><div class="sc-label" id="lbl-cap"></div><div class="sc-val" id="cap-val">0</div></div>
+    <div class="sc"><div class="sc-label" id="lbl-left"></div><div class="sc-val" id="left-val">20</div></div>
+  </div>
+  <div id="board-wrap"><canvas id="board" width="316" height="316"></canvas></div>
+  <div id="status-msg"></div>
+  <div id="tray"><div id="tray-label"></div><div id="tray-icons"></div></div>
+  <div id="game-rule"></div>
+</div>
+</div>
+
+<script>
+const T={
+  en:{
+    selTitle:'Choose your side',selSub:'Pick a piece — computer plays the other side',
+    goatName:'Goat',goatDesc:'Place & surround tigers. Win by trapping all 4.',
+    tigerName:'Tiger',tigerDesc:'Jump & capture goats. Win by catching 5.',
+    btnStart:'Start game',btnChangeLang:'Change language',btnBack:'Restart',
+    yourTurn:'Your turn',cpuTurn:'Computer thinking...',youWin:'You win!',cpuWin:'Computer wins',
+    capLabel:'Goats captured',leftLabel:'Goats to place',trayLabel:'Goat tray',
+    placeGoat:'Tap any empty point to place a goat',
+    selectGoat:'Tap your goat to move it',moveGoat:'Tap a highlighted point to move',
+    selectTiger:'Tap a tiger to move it',moveTiger:'Tap a highlighted point to move or capture',
+    cpuThinking:'Computer is thinking...',
+    tigerWinMsg:'Tigers captured 5 goats — tigers win!',goatWinMsg:'All tigers trapped — goats win!',
+    statGoat:'Goat Wins', statTiger:'Tiger Wins', drawMsg:'Game drawn — too many repetitions', drawTitle:'Draw!',
+    diffTitle:'Select Difficulty', diffEasy:'Easy', diffHard:'Hard', undoBtn:'Undo'
+  },
+  np:{
+    selTitle:'आफ्नो पक्ष छान्नुहोस्',selSub:'एउटा टोकन छान्नुहोस् — कम्प्युटरले अर्को खेल्छ',
+    goatName:'बाख्रा',goatDesc:'बाघलाई घेर्नुहोस्। चारै बाघ थुन्यो भने जित्नुहुन्छ।',
+    tigerName:'बाघ',tigerDesc:'बाख्रा उफ्रेर खानुहोस्। ५ बाख्रा खायो भने जित्नुहुन्छ।',
+    btnStart:'खेल सुरु गर्नुहोस्',btnChangeLang:'भाषा फेर्नुहोस्',btnBack:'रिस्टार्ट',
+    yourTurn:'तपाईंको पालो',cpuTurn:'कम्प्युटर सोच्दैछ...',youWin:'तपाईं जित्नुभयो!',cpuWin:'कम्प्युटर जित्यो',
+    capLabel:'खाइएका बाख्रा',leftLabel:'राख्न बाँकी बाख्रा',trayLabel:'बाख्रा ट्रे',
+    placeGoat:'खाली ठाउँमा थिचेर बाख्रा राख्नुहोस्',
+    selectGoat:'सार्न बाख्रामा थिच्नुहोस्',moveGoat:'हाइलाइट भएको ठाउँमा थिच्नुहोस्',
+    selectTiger:'सार्न बाघमा थिच्नुहोस्',moveTiger:'हाइलाइट भएको ठाउँमा थिच्नुहोस् वा खानुहोस्',
+    cpuThinking:'कम्प्युटर सोच्दैछ...',
+    tigerWinMsg:'बाघले ५ बाख्रा खायो — बाघ जित्यो!',goatWinMsg:'सबै बाघ थुनियो — बाख्रा जित्यो!',
+    statGoat:'बाख्राको जित', statTiger:'बाघको जित', drawMsg:'खेल बराबरी भयो — धेरै पटक दोहोरियो', drawTitle:'बराबरी!',
+    diffTitle:'कठिनाई छान्नुहोस्', diffEasy:'सजिलो', diffHard:'गाह्रो', undoBtn:'फर्कनुहोस्'
+  }
+};
+
+let lang='en',playerSide='G',difficulty='hard';
+let board,tigers,goatsLeft,captured,phase,selected,turn,winner,gameOver,cpuThinking,lastCPUMove=null;
+let stats = { G: 0, T: 0 }, boardHistory = {}, moveHistory = [];
+let soundEnabled = true, audioCtx = null;
+
+function getAudioContext() {
+  if (!audioCtx) {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (AudioCtx) audioCtx = new AudioCtx();
+  }
+  if (audioCtx && audioCtx.state === 'suspended') {
+    audioCtx.resume();
+  }
+  return audioCtx;
+}
+
+function toggleSound() {
+  soundEnabled = !soundEnabled;
+  const btn = document.getElementById('btn-sound');
+  if (btn) btn.textContent = soundEnabled ? '🔊' : '🔇';
+}
+
+function playTone(freq, type, duration, gainVal = 0.1) {
+  if (!soundEnabled) return;
+  try {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, ctx.currentTime);
+    gain.gain.setValueAtTime(gainVal, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + duration);
+  } catch (e) {}
+}
+
+function playMoveSound() { playTone(440, 'sine', 0.1, 0.12); }
+function playCaptureSound() {
+  playTone(180, 'triangle', 0.2, 0.2);
+  setTimeout(() => playTone(120, 'square', 0.18, 0.18), 70);
+}
+function playWinSound() {
+  if (!soundEnabled) return;
+  [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
+    setTimeout(() => playTone(freq, 'sine', 0.25, 0.18), idx * 90);
+  });
+}
+function playLoseSound() {
+  if (!soundEnabled) return;
+  [400, 350, 300, 250].forEach((freq, idx) => {
+    setTimeout(() => playTone(freq, 'sawtooth', 0.2, 0.15), idx * 110);
+  });
+}
+
+function saveSnapshot() {
+  moveHistory.push({
+    board: board.map(r => [...r]),
+    tigers: tigers.map(t => [...t]),
+    goatsLeft,
+    captured,
+    phase,
+    turn,
+    winner,
+    gameOver,
+    lastCPUMove: lastCPUMove ? JSON.parse(JSON.stringify(lastCPUMove)) : null,
+    boardHistory: JSON.parse(JSON.stringify(boardHistory))
+  });
+  updateUndoButton();
+}
+
+function updateUndoButton() {
+  const btn = document.getElementById('btn-undo');
+  if (btn) btn.disabled = (moveHistory.length === 0 || cpuThinking);
+}
+
+function undoMove() {
+  if (moveHistory.length === 0 || cpuThinking) return;
+  const last = moveHistory.pop();
+  board = last.board;
+  tigers = last.tigers;
+  goatsLeft = last.goatsLeft;
+  captured = last.captured;
+  phase = last.phase;
+  turn = last.turn;
+  winner = last.winner;
+  gameOver = last.gameOver;
+  lastCPUMove = last.lastCPUMove;
+  boardHistory = last.boardHistory;
+  selected = null;
+  renderAll();
+  updateUndoButton();
+  playMoveSound();
+}
+
+function loadStats() {
+  const saved = localStorage.getItem('bagh_chal_stats');
+  if (saved) {
+    stats = JSON.parse(saved);
+  }
+  document.getElementById('stat-goat').textContent = stats.G;
+  document.getElementById('stat-tiger').textContent = stats.T;
+}
+
+function updateStats(w) {
+  stats[w]++;
+  localStorage.setItem('bagh_chal_stats', JSON.stringify(stats));
+  loadStats();
+}
+
+const C=document.getElementById('board');
+const ctx=C.getContext('2d');
+const N=5,PAD=28,SZ=316,STEP=(SZ-PAD*2)/4;
+
+function t(k){return T[lang][k]||k;}
+
+function applyLang(){
+  const l=T[lang];
+  document.getElementById('sel-title').textContent=l.selTitle;
+  document.getElementById('sel-sub').textContent=l.selSub;
+  document.getElementById('goat-name').textContent=l.goatName;
+  document.getElementById('goat-desc').textContent=l.goatDesc;
+  document.getElementById('tiger-name').textContent=l.tigerName;
+  document.getElementById('tiger-desc').textContent=l.tigerDesc;
+  document.getElementById('btn-start').textContent=l.btnStart;
+  document.querySelectorAll('.btn-secondary')[0].textContent=l.btnChangeLang;
+  document.getElementById('btn-back').textContent=l.btnBack;
+  document.getElementById('lbl-cap').textContent=l.capLabel;
+  document.getElementById('lbl-left').textContent=l.leftLabel;
+  document.getElementById('tray-label').textContent=l.trayLabel;
+  document.getElementById('lbl-stat-goat').textContent=l.statGoat;
+  document.getElementById('lbl-stat-tiger').textContent=l.statTiger;
+  document.getElementById('diff-title').textContent=l.diffTitle;
+  document.getElementById('diff-easy').textContent=l.diffEasy;
+  document.getElementById('diff-hard').textContent=l.diffHard;
+  const uBtn = document.getElementById('btn-undo');
+  if (uBtn) uBtn.title = l.undoBtn;
+}
+
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function selectLang(l){
+  lang=l;
+  document.getElementById('card-en').classList.toggle('chosen',l==='en');
+  document.getElementById('card-np').classList.toggle('chosen',l==='np');
+  document.getElementById('btn-lang-next').disabled=false;
+  document.getElementById('btn-lang-next').textContent=l==='en'?'Continue':'सुरु गरौं';
+}
+
+function goToLang(){show('screen-lang');}
+
+function goToSelect(){
+  applyLang();
+  loadStats();
+  document.getElementById('card-goat').classList.remove('chosen');
+  document.getElementById('card-tiger').classList.remove('chosen');
+  difficulty='hard';
+  document.getElementById('diff-easy').classList.remove('chosen');
+  document.getElementById('diff-hard').classList.add('chosen');
+  document.getElementById('btn-start').disabled=true;
+  playerSide='G';
+  show('screen-select');
+}
+
+function selectDiff(d){
+  difficulty=d;
+  document.getElementById('diff-easy').classList.toggle('chosen',d==='easy');
+  document.getElementById('diff-hard').classList.toggle('chosen',d==='hard');
+}
+
+function selectSide(s){
+  playerSide=s;
+  document.getElementById('card-goat').classList.toggle('chosen',s==='G');
+  document.getElementById('card-tiger').classList.toggle('chosen',s==='T');
+  document.getElementById('btn-start').disabled=false;
+}
+
+function startGame(){
+  applyLang();
+  board=Array.from({length:5},()=>Array(5).fill(null));
+  board[0][0]=board[0][4]=board[4][0]=board[4][4]='T';
+  tigers=[[0,0],[0,4],[4,0],[4,4]];
+  goatsLeft=20;captured=0;phase=1;selected=null;turn='G';winner=null;gameOver=false;cpuThinking=false;lastCPUMove=null;
+  boardHistory = {};
+  moveHistory = [];
+  updateUndoButton();
+  document.getElementById('game-rule').textContent = playerSide === 'G' ? T[lang].goatDesc : T[lang].tigerDesc;
+  show('screen-game');
+  recordState();
+  renderAll();
+  if(turn!==playerSide)setTimeout(doCPU,600);
+}
+
+function pt(r,c){return{x:PAD+c*STEP,y:PAD+r*STEP};}
+
+function hasDiag(r1,c1,r2,c2){
+  const P=[[0,0,1,1],[1,1,2,2],[2,2,3,3],[3,3,4,4],[0,4,1,3],[1,3,2,2],[2,2,3,1],[3,1,4,0],[0,0,1,1],[0,2,1,1],[0,2,1,3],[2,0,1,1],[2,4,1,3],[2,0,3,1],[4,0,3,1],[2,4,3,3],[4,4,3,3],[4,2,3,1],[4,2,3,3],[2,2,1,1],[2,2,1,3],[2,2,3,1],[2,2,3,3]];
+  return P.some(p=>(p[0]===r1&&p[1]===c1&&p[2]===r2&&p[3]===c2)||(p[0]===r2&&p[1]===c2&&p[2]===r1&&p[3]===c1));
+}
+
+function isAdj(r1,c1,r2,c2){
+  const dr=Math.abs(r1-r2),dc=Math.abs(c1-c2);
+  if(dr===0&&dc===1)return true;if(dr===1&&dc===0)return true;
+  if(dr===1&&dc===1)return hasDiag(r1,c1,r2,c2);return false;
+}
+
+function getMoves(r,c){
+  const moves=[];
+  if(board[r][c]==='T'){
+    for(let nr=0;nr<5;nr++)for(let nc=0;nc<5;nc++){
+      if(!board[nr][nc]&&isAdj(r,c,nr,nc))moves.push({r:nr,c:nc,capture:null});
+      if(board[nr][nc]==='G'&&isAdj(r,c,nr,nc)){const jr=nr+(nr-r),jc=nc+(nc-c);if(jr>=0&&jr<5&&jc>=0&&jc<5&&!board[jr][jc]&&isAdj(nr,nc,jr,jc))moves.push({r:jr,c:jc,capture:[nr,nc]});}
+    }
+  } else {
+    for(let nr=0;nr<5;nr++)for(let nc=0;nc<5;nc++){if(!board[nr][nc]&&isAdj(r,c,nr,nc))moves.push({r:nr,c:nc,capture:null});}
+  }
+  return moves;
+}
+
+function tigerTrapped(){
+  return tigers.every(([tr,tc])=>getMoves(tr,tc).length===0);
+}
+
+function applyMove(mv,brd,tig,cap){
+  const nb=brd.map(r=>[...r]),nt=tig.map(t=>[...t]);let nc=cap;
+  if(mv.piece==='T'){
+    nb[mv.fr][mv.fc]=null;nb[mv.r][mv.c]='T';
+    const i=nt.findIndex(t=>t[0]===mv.fr&&t[1]===mv.fc);if(i>=0)nt[i]=[mv.r,mv.c];
+    if(mv.capture){nb[mv.capture[0]][mv.capture[1]]=null;nc++;}
+  } else {nb[mv.fr][mv.fc]=null;nb[mv.r][mv.c]='G';}
+  return{board:nb,tigers:nt,captured:nc};
+}
+
+function score(brd,tig,cap,gl){
+  if(cap>=5)return 1000;
+  const trapped=tig.filter(([tr,tc])=>{for(let nr=0;nr<5;nr++)for(let nc=0;nc<5;nc++){if(!brd[nr][nc]&&isAdj(tr,tc,nr,nc))return false;if(brd[nr][nc]==='G'&&isAdj(tr,tc,nr,nc)){const jr=nr+(nr-tr),jc=nc+(nc-tc);if(jr>=0&&jr<5&&jc>=0&&jc<5&&!brd[jr][jc]&&isAdj(nr,nc,jr,jc))return false;}}return true;}).length;
+  if(trapped===4)return -1000;
+  return cap*50-trapped*40-gl*2;
+}
+
+function minimax(brd,tig,cap,gl,ph,depth,alpha,beta,maxing){
+  if(cap>=5)return 1000;
+  if(tig.every(([tr,tc])=>{for(let nr=0;nr<5;nr++)for(let nc=0;nc<5;nc++){if(!brd[nr][nc]&&isAdj(tr,tc,nr,nc))return false;if(brd[nr][nc]==='G'&&isAdj(tr,tc,nr,nc)){const jr=nr+(nr-tr),jc=nc+(nc-tc);if(jr>=0&&jr<5&&jc>=0&&jc<5&&!brd[jr][jc]&&isAdj(nr,nc,jr,jc))return false;}}return true;}))return -1000;
+  if(depth===0)return score(brd,tig,cap,gl);
+  if(maxing){
+    let best=-9999;
+    const tms=[];
+    for(const[tr,tc]of tig){for(let nr=0;nr<5;nr++)for(let nc=0;nc<5;nc++){if(!brd[nr][nc]&&isAdj(tr,tc,nr,nc))tms.push({piece:'T',fr:tr,fc:tc,r:nr,c:nc,capture:null});if(brd[nr][nc]==='G'&&isAdj(tr,tc,nr,nc)){const jr=nr+(nr-tr),jc=nc+(nc-tc);if(jr>=0&&jr<5&&jc>=0&&jc<5&&!brd[jr][jc]&&isAdj(nr,nc,jr,jc))tms.push({piece:'T',fr:tr,fc:tc,r:jr,c:jc,capture:[nr,nc]});}}}
+    if(!tms.length)return -1000;
+    for(const mv of tms){const{board:nb,tigers:nt,captured:nc}=applyMove(mv,brd,tig,cap);const v=minimax(nb,nt,nc,gl,ph,depth-1,alpha,beta,false);best=Math.max(best,v);alpha=Math.max(alpha,v);if(beta<=alpha)break;}
+    return best;
+  } else {
+    let best=9999;
+    if(ph===1&&gl>0){
+      for(let nr=0;nr<5;nr++)for(let nc=0;nc<5;nc++){if(!brd[nr][nc]){const nb=brd.map(r=>[...r]);nb[nr][nc]='G';const v=minimax(nb,tig,cap,gl-1,gl-1===0?2:1,depth-1,alpha,beta,true);best=Math.min(best,v);beta=Math.min(beta,v);if(beta<=alpha)break;}}
+    } else {
+      const gms=[];for(let r=0;r<5;r++)for(let c=0;c<5;c++){if(brd[r][c]==='G')for(let nr=0;nr<5;nr++)for(let nc=0;nc<5;nc++){if(!brd[nr][nc]&&isAdj(r,c,nr,nc))gms.push({piece:'G',fr:r,fc:c,r:nr,c:nc,capture:null});}}
+      if(!gms.length)return 1000;
+      for(const mv of gms){const{board:nb}=applyMove(mv,brd,tig,cap);const v=minimax(nb,tig,cap,gl,ph,depth-1,alpha,beta,true);best=Math.min(best,v);beta=Math.min(beta,v);if(beta<=alpha)break;}
+    }
+    return best;
+  }
+}
+
+function bestTigerMove(){
+  let best=-9999,bestMv=null;
+  const moves=[];
+  for(const[tr,tc]of tigers){for(let nr=0;nr<5;nr++)for(let nc=0;nc<5;nc++){if(!board[nr][nc]&&isAdj(tr,tc,nr,nc) )moves.push({piece:'T',fr:tr,fc:tc,r:nr,c:nc,capture:null});if(board[nr][nc]==='G'&&isAdj(tr,tc,nr,nc)){const jr=nr+(nr-tr),jc=nc+(nc-tc);if(jr>=0&&jr<5&&jc>=0&&jc<5&&!board[jr][jc]&&isAdj(nr,nc,jr,jc))moves.push({piece:'T',fr:tr,fc:tc,r:jr,c:jc,capture:[nr,nc]});}}}
+  moves.sort((a,b)=>(b.capture?1:0)-(a.capture?1:0));
+  const d = difficulty === 'hard' ? 3 : 1;
+  for(const mv of moves){const{board:nb,tigers:nt,captured:nc}=applyMove(mv,board,tigers,captured);const v=minimax(nb,nt,nc,goatsLeft,phase,d,-9999,9999,false);if(v>best){best=v;bestMv=mv;}}
+  return bestMv;
+}
+
+function bestGoatMove(){
+  const d = difficulty === 'hard' ? 2 : 1;
+  if(phase===1&&goatsLeft>0){
+    let best=9999,br=-1,bc=-1;
+    for(let r=0;r<5;r++)for(let c=0;c<5;c++){if(!board[r][c]){const nb=board.map(x=>[...x]);nb[r][c]='G';const v=minimax(nb,tigers,captured,goatsLeft-1,goatsLeft-1===0?2:1,d,-9999,9999,true);if(v<best){best=v;br=r;bc=c;}}}
+    return br>=0?{place:true,r:br,c:bc}:null;
+  } else {
+    let best=9999,bestMv=null;
+    for(let r=0;r<5;r++)for(let c=0;c<5;c++){if(board[r][c]==='G'){for(const m of getMoves(r,c)){const mv={piece:'G',fr:r,fc:c,...m};const{board:nb}=applyMove(mv,board,tigers,captured);const v=minimax(nb,tigers,captured,goatsLeft,phase,d,-9999,9999,true);if(v<best){best=v;bestMv=mv;}}}}
+    return bestMv;
+  }
+}
+
+function doCPU(){
+  if(gameOver||cpuThinking)return;
+  cpuThinking=true;setMsg(t('cpuThinking'));
+  updateUndoButton();
+  setTimeout(()=>{
+    let mv;
+    if(turn==='T'){
+      mv=bestTigerMove();
+      if(mv){
+        board[mv.fr][mv.fc]=null;board[mv.r][mv.c]='T';
+        const i=tigers.findIndex(x=>x[0]===mv.fr&&x[1]===mv.fc);if(i>=0)tigers[i]=[mv.r,mv.c];
+        if(mv.capture){board[mv.capture[0]][mv.capture[1]]=null;captured++;playCaptureSound();}
+        else {playMoveSound();}
+        lastCPUMove={from:[mv.fr,mv.fc],to:[mv.r,mv.c]};
+        turn='G';
+      }
+    } else {
+      mv=bestGoatMove();
+      if(mv){
+        if(mv.place){board[mv.r][mv.c]='G';goatsLeft--;if(goatsLeft===0)phase=2;lastCPUMove={from:null,to:[mv.r,mv.c]};}
+        else{board[mv.fr][mv.fc]=null;board[mv.r][mv.c]='G';lastCPUMove={from:[mv.fr,mv.fc],to:[mv.r,mv.c]};}
+        turn='T';
+        playMoveSound();
+      }
+    }
+    cpuThinking=false; recordState(); renderAll(); updateUndoButton(); checkWin();
+    if(lastCPUMove)setTimeout(()=>{lastCPUMove=null;renderAll();},2000);
+  },400);
+}
+
+function recordState() {
+  const state = JSON.stringify(board) + turn + phase;
+  boardHistory[state] = (boardHistory[state] || 0) + 1;
+}
+
+function checkWin(){
+  const state = JSON.stringify(board) + turn + phase;
+  if (boardHistory[state] >= 5) {
+    winner = 'D'; gameOver = true; renderAll(); playLoseSound();
+    setTimeout(() => alert(t('drawMsg')), 500);
+    return;
+  }
+
+  if(captured>=5){
+    winner='T';gameOver=true;renderAll();
+    updateStats('T');
+    if (winner === playerSide) playWinSound(); else playLoseSound();
+    setTimeout(() => alert(winner === playerSide ? t('youWin') : t('cpuWin')), 500);
+  }
+  else if(tigerTrapped()){
+    winner='G';gameOver=true;renderAll();
+    updateStats('G');
+    if (winner === playerSide) playWinSound(); else playLoseSound();
+    setTimeout(() => alert(winner === playerSide ? t('youWin') : t('cpuWin')), 500);
+  } else if (turn === 'G' && phase === 2) {
+    let hasMove = false;
+    for(let r=0;r<5;r++)for(let c=0;c<5;c++){if(board[r][c]==='G' && getMoves(r,c).length > 0) hasMove = true;}
+    if (!hasMove) {
+      winner = 'T'; gameOver = true; renderAll();
+      updateStats('T');
+      if (winner === playerSide) playWinSound(); else playLoseSound();
+      setTimeout(() => alert(winner === playerSide ? t('youWin') : t('cpuWin')), 500);
+    }
+  }
+}
+
+function drawBoard(){
+  ctx.clearRect(0,0,SZ,SZ);
+  const lc='rgba(0,0,0,0.7)';
+  ctx.strokeStyle=lc;ctx.lineWidth=4;
+  for(let i=0;i<5;i++){
+    ctx.beginPath();const a=pt(i,0),b=pt(i,4);ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();
+    ctx.beginPath();const c=pt(0,i),d=pt(4,i);ctx.moveTo(c.x,c.y);ctx.lineTo(d.x,d.y);ctx.stroke();
+  }
+  const dl=[[0,0,4,4],[0,4,4,0],[0,0,2,2],[2,0,0,2],[2,0,4,2],[4,0,2,2],[0,4,2,2],[2,4,0,2],[2,4,4,2],[4,4,2,2],[0,2,2,0],[0,2,2,4],[4,2,2,0],[4,2,2,4]];
+  for(const[r1,c1,r2,c2]of dl){const a=pt(r1,c1),b=pt(r2,c2);ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();}
+
+  for(let r=0;r<5;r++)for(let c=0;c<5;c++){const{x,y}=pt(r,c);ctx.beginPath();ctx.arc(x,y,4,0,Math.PI*2);ctx.fillStyle=lc;ctx.fill();}
+
+  if(lastCPUMove){
+    const{to,from}=lastCPUMove;
+    if(from){
+      const f=pt(from[0],from[1]),t=pt(to[0],to[1]);
+      ctx.beginPath();ctx.setLineDash([5,5]);ctx.strokeStyle='rgba(255,165,0,0.6)';ctx.lineWidth=3;ctx.moveTo(f.x,f.y);ctx.lineTo(t.x,t.y);ctx.stroke();ctx.setLineDash([]);
+      ctx.beginPath();ctx.arc(f.x,f.y,15,0,Math.PI*2);ctx.strokeStyle='rgba(255,165,0,0.4)';ctx.lineWidth=2;ctx.stroke();
+    }
+    const tp=pt(to[0],to[1]);
+    ctx.beginPath();ctx.arc(tp.x,tp.y,16,0,Math.PI*2);ctx.strokeStyle='rgba(255,165,0,0.8)';ctx.lineWidth=3;ctx.stroke();
+  }
+}
+
+function drawPieces(){
+  for(let r=0;r<5;r++)for(let c=0;c<5;c++){
+    const p=board[r][c];if(!p)continue;
+    const{x,y}=pt(r,c);const isSel=selected&&selected[0]===r&&selected[1]===c;
+    if(p==='T'){
+      ctx.beginPath();ctx.arc(x,y,13,0,Math.PI*2);ctx.fillStyle=isSel?'#e07000':'#c45a00';ctx.fill();
+      ctx.strokeStyle='#7a3500';ctx.lineWidth=1.5;ctx.stroke();
+      ctx.fillStyle='#fff';ctx.font='bold 10px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('T',x,y);
+    } else {
+      ctx.beginPath();ctx.arc(x,y,11,0,Math.PI*2);ctx.fillStyle=isSel?'#b8d098':'#e8e0c8';ctx.fill();
+      ctx.strokeStyle='#6a7a4a';ctx.lineWidth=1.5;ctx.stroke();
+      ctx.fillStyle='#3a5a1a';ctx.font='bold 10px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('G',x,y);
+    }
+  }
+  if(selected&&board[selected[0]][selected[1]]){
+    const ms=getMoves(selected[0],selected[1]);
+    for(const m of ms){const{x,y}=pt(m.r,m.c);ctx.beginPath();ctx.arc(x,y,10,0,Math.PI*2);ctx.fillStyle='rgba(50,120,255,0.35)';ctx.fill();ctx.strokeStyle='rgba(50,120,255,0.8)';ctx.lineWidth=2;ctx.stroke();}
+  } else if(turn===playerSide && turn==='G' && phase===1){
+    for(let r=0;r<5;r++)for(let c=0;c<5;c++){if(!board[r][c]){const{x,y}=pt(r,c);ctx.beginPath();ctx.arc(x,y,7,0,Math.PI*2);ctx.fillStyle='rgba(50,120,255,0.15)';ctx.fill();ctx.strokeStyle='rgba(50,120,255,0.4)';ctx.lineWidth=1.5;ctx.stroke();}}}
+}
+
+function setMsg(tx){document.getElementById('status-msg').textContent=tx;}
+
+function renderAll(){
+  drawBoard();drawPieces();
+  document.getElementById('cap-val').textContent=captured;
+  document.getElementById('left-val').textContent=goatsLeft;
+  const tray=document.getElementById('tray-icons');tray.innerHTML='';
+  for(let i=0;i<20;i++){const d=document.createElement('div');d.className='gi'+(i>=goatsLeft?' used':'');tray.appendChild(d);}
+  const pill=document.getElementById('status-pill');
+  const msgEl=document.getElementById('status-msg');
+  msgEl.className = '';
+  if(gameOver){
+    if (winner === 'D') {
+      pill.className = 'status-pill pill-draw';
+      pill.textContent = t('drawTitle');
+      msgEl.className = 'msg-draw';
+      setMsg(t('drawMsg'));
+      return;
+    }
+    const pw=winner===playerSide;
+    pill.className='status-pill '+(pw?'pill-win':'pill-lose');
+    pill.textContent=pw?t('youWin'):t('cpuWin');
+    msgEl.className = pw ? 'msg-win' : 'msg-lose';
+    setMsg(winner==='T'?t('tigerWinMsg'):t('goatWinMsg'));
+    return;
+  }
+  const isPlayer=turn===playerSide;
+  pill.className='status-pill '+(isPlayer?'pill-player':'pill-cpu');
+  pill.textContent=isPlayer?t('yourTurn'):t('cpuTurn');
+  if(isPlayer){
+    if(turn==='G'&&phase===1)setMsg(t('placeGoat'));
+    else if(turn==='G')setMsg(selected?t('moveGoat'):t('selectGoat'));
+    else setMsg(selected?t('moveTiger'):t('selectTiger'));
+  } else setMsg('');
+}
+
+C.addEventListener('click',e=>{
+  if(gameOver||cpuThinking||turn!==playerSide)return;
+  const rect=C.getBoundingClientRect();
+  const sx=SZ/rect.width,sy=SZ/rect.height;
+  const cx=(e.clientX-rect.left)*sx,cy=(e.clientY-rect.top)*sy;
+  let br=-1,bc=-1,bd=999;
+  for(let r=0;r<5;r++)for(let c=0;c<5;c++){const{x,y}=pt(r,c);const d=Math.hypot(x-cx,y-cy);if(d<bd){bd=d;br=r;bc=c;}}
+  if(bd>STEP*0.55)return;
+  handleClick(br,bc);
+});
+
+function handleClick(r,c){
+  if(playerSide==='G'){
+    if(phase===1){
+      if(board[r][c])return;
+      saveSnapshot();
+      board[r][c]='G';goatsLeft--;if(goatsLeft===0)phase=2;selected=null;turn='T';
+      playMoveSound();
+      recordState(); renderAll();checkWin();if(!gameOver)setTimeout(doCPU,300);
+    } else {
+      if(selected){
+        const ms=getMoves(selected[0],selected[1]);const mv=ms.find(m=>m.r===r&&m.c===c);
+        if(mv){
+          saveSnapshot();
+          board[selected[0]][selected[1]]=null;board[r][c]='G';selected=null;turn='T';
+          playMoveSound();
+          recordState();renderAll();checkWin();if(!gameOver)setTimeout(doCPU,300);
+        }
+        else if(board[r][c]==='G'){selected=[r,c];renderAll();}
+        else{selected=null;renderAll();}
+      } else {if(board[r][c]==='G'){selected=[r,c];renderAll();}}
+    }
+  } else {
+    if(selected){
+      const ms=getMoves(selected[0],selected[1]);const mv=ms.find(m=>m.r===r&&m.c===c);
+      if(mv){
+        saveSnapshot();
+        const sr=selected[0],sc=selected[1];board[sr][sc]=null;board[r][c]='T';
+        const i=tigers.findIndex(x=>x[0]===sr&&x[1]===sc);if(i>=0)tigers[i]=[r,c];
+        if(mv.capture){board[mv.capture[0]][mv.capture[1]]=null;captured++;playCaptureSound();}
+        else {playMoveSound();}
+        selected=null;turn='G';recordState();renderAll();checkWin();if(!gameOver)setTimeout(doCPU,300);
+      } else if(board[r][c]==='T'){selected=[r,c];renderAll();}
+      else{selected=null;renderAll();}
+    } else {if(board[r][c]==='T'){selected=[r,c];renderAll();}}
+  }
+}
+loadStats();
+</script>
