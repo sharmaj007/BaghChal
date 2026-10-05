@@ -9,7 +9,7 @@ on:
 
 jobs:
   build-android:
-    name: Build Android App (APK)
+    name: Build Android App (APK & AAB Bundle)
     runs-on: macos-latest
 
     steps:
@@ -26,14 +26,22 @@ jobs:
       - name: Make Gradle Wrapper Executable
         run: chmod +x gradlew
 
-      - name: Build Android Debug APK
-        run: ./gradlew app:assembleDebug
+      - name: Build Android Debug APK & AAB Bundle
+        run: |
+          ./gradlew app:assembleDebug
+          ./gradlew app:bundleDebug
 
       - name: Upload Android APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: bagh-chal-android-apk
           path: app/build/outputs/apk/debug/*.apk
+
+      - name: Upload Android AAB Bundle Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bagh-chal-android-aab-bundle
+          path: app/build/outputs/bundle/debug/*.aab
 
   build-ios:
     name: Build iOS Package
