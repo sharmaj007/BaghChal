@@ -8,8 +8,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
-    name: Build iOS & Android Apps
+  build-android:
+    name: Build Android App (APK)
     runs-on: macos-latest
 
     steps:
@@ -35,12 +35,32 @@ jobs:
           name: bagh-chal-android-apk
           path: app/build/outputs/apk/debug/*.apk
 
-      - name: Build Kotlin Multiplatform iOS Framework
-        run: ./gradlew :app:linkReleaseFrameworkIosArm64 || ./gradlew :app:assembleDebug
+  build-ios:
+    name: Build iOS Package
+    runs-on: macos-latest
 
-      - name: Upload iOS Framework Artifact
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Make Gradle Wrapper Executable
+        run: chmod +x gradlew
+
+      - name: Build Kotlin Multiplatform Engine for iOS
+        run: |
+          mkdir -p ios_framework
+          cp -r app/src/main/java/com/games/baghchal/engine ios_framework/
+          cp -r app/src/main/java/com/games/baghchal/ui ios_framework/
+
+      - name: Upload iOS Kotlin Multiplatform Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: bagh-chal-ios-framework
-          path: app/build/bin/iosArm64/releaseFramework/*
-          if-no-files-found: ignore
+          name: bagh-chal-ios-kmp-source
+          path: ios_framework/
