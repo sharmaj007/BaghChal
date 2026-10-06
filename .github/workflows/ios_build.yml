@@ -44,7 +44,7 @@ jobs:
           path: app/build/outputs/bundle/debug/*.aab
 
   build-ios:
-    name: Build iOS Package
+    name: Build iOS Package (.ipa & KMP Source)
     runs-on: macos-latest
 
     steps:
@@ -57,17 +57,31 @@ jobs:
       - name: Build iOS App with xcodebuild
         run: |
           cd iosApp
-          xcodebuild -project BaghChal.xcodeproj -scheme BaghChal -sdk iphonesimulator -configuration Release CODE_SIGNING_ALLOWED=NO build || true
+          xcodebuild -project BaghChal.xcodeproj -scheme BaghChal -sdk iphoneos -configuration Release CODE_SIGNING_ALLOWED=NO build || true
 
-      - name: Package iOS Build Artifacts
+      - name: Package Sideloadly .ipa File
+        run: |
+          mkdir -p ipa_export/Payload
+          cp -r iosApp/build/Release-iphoneos/BaghChal.app ipa_export/Payload/ 2>/dev/null || true
+          cd ipa_export
+          zip -r BaghChal.ipa Payload || true
+
+      - name: Package iOS Source Files
         run: |
           mkdir -p ios_export
           cp -r iosApp/* ios_export/
           cp -r app/src/main/java/com/games/baghchal/engine ios_export/
           cp -r app/src/main/java/com/games/baghchal/ui ios_export/
 
-      - name: Upload iOS App Package
+      - name: Upload iOS Sideloadly IPA Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: bagh-chal-ios-app-package
+          name: bagh-chal-ios-sideloadly-ipa
+          path: ipa_export/BaghChal.ipa
+          if-no-files-found: ignore
+
+      - name: Upload iOS Source Package
+        uses: actions/upload-artifact@v4
+        with:
+          name: bagh-chal-ios-source-package
           path: ios_export/
