@@ -54,11 +54,12 @@ jobs:
       - name: Select Xcode Version
         run: sudo xcode-select -s /Applications/Xcode_15.4.app || sudo xcode-select -s /Applications/Xcode.app || true
 
-      - name: Compile Swift iOS App Binary
+      - name: Compile Native iOS App Executable with xcodebuild
         run: |
-          mkdir -p ipa_export/Payload/BaghChal.app
-          cp iosApp/Info.plist ipa_export/Payload/BaghChal.app/
-          swiftc -target arm64-apple-ios15.0-simulator iosApp/BaghChalApp.swift -emit-executable -o ipa_export/Payload/BaghChal.app/BaghChal || true
+          cd iosApp
+          xcodebuild -project BaghChal.xcodeproj -scheme BaghChal -sdk iphoneos -configuration Release CODE_SIGNING_ALLOWED=NO -derivedDataPath build/
+          mkdir -p ../ipa_export/Payload
+          cp -r build/Build/Products/Release-iphoneos/BaghChal.app ../ipa_export/Payload/
 
       - name: Package Sideloadly .ipa File
         run: |
