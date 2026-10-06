@@ -1,4 +1,5 @@
 import SwiftUI
+import WebKit
 
 @main
 struct BaghChalApp: App {
@@ -9,30 +10,30 @@ struct BaghChalApp: App {
     }
 }
 
+struct GameWebView: UIViewRepresentable {
+    func makeUIView(context: Context) -> WKWebView {
+        let config = WKWebViewConfiguration()
+        config.allowsInlineMediaPlayback = true
+        config.preferences.setValue(true, forKey: "allowFileAccessFromFileURLs")
+
+        let webView = WKWebView(frame: .zero, configuration: config)
+        webView.scrollView.isScrollEnabled = false
+        webView.isOpaque = false
+        webView.backgroundColor = UIColor(red: 248/255.0, green: 249/255.0, blue: 250/255.0, alpha: 1.0)
+
+        if let htmlPath = Bundle.main.path(forResource: "bagh_chal_bilingual", ofType: "html") {
+            let url = URL(fileURLWithPath: htmlPath)
+            webView.loadFileURL(url, allowingReadAccessTo: url.deletingLastPathComponent())
+        }
+        return webView
+    }
+
+    func updateUIView(_ uiView: WKWebView, context: Context) {}
+}
+
 struct ContentView: View {
     var body: some View {
-        VStack(spacing: 16) {
-            Spacer()
-
-            Text("बाघ चाल")
-                .font(.system(size: 36, weight: .bold))
-                .foregroundColor(Color(red: 0.1, green: 0.1, blue: 0.11))
-
-            Text("BaghChal")
-                .font(.system(size: 20, weight: .semibold))
-                .foregroundColor(Color(red: 0.22, green: 0.53, blue: 0.87))
-
-            Text("Nepal's Traditional Board Game")
-                .font(.system(size: 14))
-                .foregroundColor(.gray)
-
-            Spacer()
-
-            ProgressView()
-                .scaleEffect(1.2)
-
-            Spacer().frame(height: 30)
-        }
-        .padding(24)
+        GameWebView()
+            .ignoresSafeArea()
     }
 }
