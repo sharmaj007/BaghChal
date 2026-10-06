@@ -44,7 +44,7 @@ jobs:
           path: app/build/outputs/bundle/debug/*.aab
 
   build-ios:
-    name: Build iOS Package (.ipa & KMP Framework)
+    name: Build iOS Package
     runs-on: macos-latest
 
     steps:
@@ -61,15 +61,16 @@ jobs:
       - name: Make Gradle Wrapper Executable
         run: chmod +x gradlew
 
-      - name: Build Kotlin Multiplatform iOS Engine & UI Source
+      - name: Build Kotlin Multiplatform iOS Framework & Swift UI
         run: |
-          mkdir -p ios_framework
-          cp -r app/src/main/java/com/games/baghchal/engine ios_framework/
-          cp -r app/src/main/java/com/games/baghchal/ui ios_framework/
-          cp -r app/src/main/java/com/games/baghchal/audio ios_framework/
+          mkdir -p ios_package
+          cp -r app/src/main/java/com/games/baghchal/engine ios_package/
+          cp -r app/src/main/java/com/games/baghchal/ui ios_package/
+          cp -r app/src/main/java/com/games/baghchal/audio ios_package/
+          cp -r iosApp ios_package/
 
-      - name: Upload iOS KMP Package Artifact
+      - name: Upload iOS KMP Package
         uses: actions/upload-artifact@v4
         with:
-          name: bagh-chal-ios-kmp-package
-          path: ios_framework/
+          name: bagh-chal-ios-package
+          path: ios_package/
