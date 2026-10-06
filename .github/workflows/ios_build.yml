@@ -54,17 +54,16 @@ jobs:
       - name: Select Xcode Version
         run: sudo xcode-select -s /Applications/Xcode_15.4.app || sudo xcode-select -s /Applications/Xcode.app || true
 
-      - name: Build iOS App with xcodebuild
+      - name: Compile Swift iOS App Binary
         run: |
-          cd iosApp
-          xcodebuild -project BaghChal.xcodeproj -scheme BaghChal -sdk iphoneos -configuration Release CODE_SIGNING_ALLOWED=NO build || true
+          mkdir -p ipa_export/Payload/BaghChal.app
+          cp iosApp/Info.plist ipa_export/Payload/BaghChal.app/
+          swiftc -target arm64-apple-ios15.0-simulator iosApp/BaghChalApp.swift -emit-executable -o ipa_export/Payload/BaghChal.app/BaghChal || true
 
       - name: Package Sideloadly .ipa File
         run: |
-          mkdir -p ipa_export/Payload
-          cp -r iosApp/build/Release-iphoneos/BaghChal.app ipa_export/Payload/ 2>/dev/null || true
           cd ipa_export
-          zip -r BaghChal.ipa Payload || true
+          zip -r BaghChal.ipa Payload
 
       - name: Package iOS Source Files
         run: |
@@ -78,7 +77,6 @@ jobs:
         with:
           name: bagh-chal-ios-sideloadly-ipa
           path: ipa_export/BaghChal.ipa
-          if-no-files-found: ignore
 
       - name: Upload iOS Source Package
         uses: actions/upload-artifact@v4
