@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.games.baghchal.audio.SoundManager
+import com.games.baghchal.audio.VibrationManager
 import com.games.baghchal.engine.*
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdSize
@@ -28,7 +29,7 @@ import com.google.android.gms.ads.AdView
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-enum class AppScreen { LANG_SELECT, SIDE_SELECT, GAME }
+enum class AppScreen { LANG_SELECT, SIDE_SELECT, GAME, TUTORIAL }
 enum class Lang { EN, NP }
 
 data class LocalizedStrings(
@@ -42,6 +43,7 @@ data class LocalizedStrings(
     val btnChangeLang: String,
     val btnChangeSide: String,
     val btnBack: String,
+    val btnTutorial: String,
     val yourTurn: String,
     val cpuTurn: String,
     val youWin: String,
@@ -63,7 +65,21 @@ data class LocalizedStrings(
     val drawTitle: String,
     val diffTitle: String,
     val diffEasy: String,
-    val diffHard: String
+    val diffHard: String,
+    val tutStep1Title: String,
+    val tutStep1Desc: String,
+    val tutStep2Title: String,
+    val tutStep2Desc: String,
+    val tutStep3Title: String,
+    val tutStep3Desc: String,
+    val tutStep4Title: String,
+    val tutStep4Desc: String,
+    val tutNext: String,
+    val tutPrev: String,
+    val tutGotIt: String,
+    val tutDiagStep2: String,
+    val tutDiagStep3: String,
+    val tutDiagStep4: String
 )
 
 val stringsEN = LocalizedStrings(
@@ -71,6 +87,7 @@ val stringsEN = LocalizedStrings(
     goatName = "Goat", goatDesc = "Place & surround tigers. Win by trapping all 4.",
     tigerName = "Tiger", tigerDesc = "Jump & capture goats. Win by catching 5.",
     btnStart = "Start game", btnChangeLang = "Change language", btnChangeSide = "Change Side", btnBack = "Play Again",
+    btnTutorial = "📖 How to Play / Tutorial",
     yourTurn = "Your turn", cpuTurn = "Thinking...", youWin = "YOU WIN!", cpuWin = "COMPUTER WINS",
     capLabel = "Goats captured", leftLabel = "Goats to place", trayLabel = "Goat tray",
     placeGoat = "Tap any empty point to place a goat",
@@ -79,7 +96,19 @@ val stringsEN = LocalizedStrings(
     cpuThinking = "Thinking...",
     tigerWinMsg = "Tigers captured 5 goats — tigers win!", goatWinMsg = "All tigers trapped — goats win!",
     statGoat = "Goat Wins", statTiger = "Tiger Wins", drawMsg = "Game drawn — too many repetitions", drawTitle = "DRAW!",
-    diffTitle = "Select Difficulty", diffEasy = "Easy", diffHard = "Hard"
+    diffTitle = "Select Difficulty", diffEasy = "Easy", diffHard = "Hard",
+    tutStep1Title = "1. Board & Objective",
+    tutStep1Desc = "BaghChal is played on a 5x5 grid with 4 Tigers at the corners and 20 Goats in the tray. Tigers win by capturing 5 goats. Goats win by surrounding & trapping all 4 tigers!",
+    tutStep2Title = "2. Goat Placement Phase",
+    tutStep2Desc = "Goats start first! Place all 20 goats one by one on empty intersections. Goats cannot move until all 20 goats are placed.",
+    tutStep3Title = "3. Tiger Jump Capture",
+    tutStep3Desc = "Tigers move 1 step along grid lines. A tiger can jump over an adjacent goat into an empty space behind it to CAPTURE the goat!",
+    tutStep4Title = "4. Goat Movement & Trapping",
+    tutStep4Desc = "After placing 20 goats, goats move 1 step along grid lines. Coordinate goats to block all moves for all 4 tigers to TRAP them and WIN!",
+    tutNext = "Next Step ➔", tutPrev = "⬅ Back", tutGotIt = "Got it! Play Game 🎮",
+    tutDiagStep2 = "👇 Tap empty spot to place goat",
+    tutDiagStep3 = "🐅 Jump over goat to capture",
+    tutDiagStep4 = "🛡️ Surround and trap all 4 tigers"
 )
 
 val stringsNP = LocalizedStrings(
@@ -87,6 +116,7 @@ val stringsNP = LocalizedStrings(
     goatName = "बाख्रा", goatDesc = "बाघलाई घेर्नुहोस्। चारै बाघ थुन्यो भने जित्नुहुन्छ।",
     tigerName = "बाघ", tigerDesc = "बाख्रा उफ्रेर खानुहोस्। ५ बाख्रा खायो भने जित्नुहुन्छ।",
     btnStart = "खेल सुरु गर्नुहोस्", btnChangeLang = "भाषा फेर्नुहोस्", btnChangeSide = "पक्ष फेर्नुहोस्", btnBack = "फेरि खेल्नुहोस्",
+    btnTutorial = "📖 कसरी खेल्ने / ट्यूटोरियल",
     yourTurn = "तपाईंको पालो", cpuTurn = "सोच्दैछ...", youWin = "तपाईं जित्नुभयो!", cpuWin = "कम्प्युटर जित्यो",
     capLabel = "खाइएका बाख्रा", leftLabel = "राख्न बाँकी बाख्रा", trayLabel = "बाख्रा ट्रे",
     placeGoat = "खाली ठाउँमा थिचेर बाख्रा राख्नुहोस्",
@@ -95,7 +125,19 @@ val stringsNP = LocalizedStrings(
     cpuThinking = "सोच्दैछ...",
     tigerWinMsg = "बाघले ५ बाख्रा खायो — बाघ जित्यो!", goatWinMsg = "सबै बाघ थुनियो — बाख्रा जित्यो!",
     statGoat = "बाख्राको जित", statTiger = "बाघको जित", drawMsg = "खेल बराबरी भयो — धेरै पटक दोहोरियो", drawTitle = "बराबरी!",
-    diffTitle = "कठिनाई छान्नुहोस्", diffEasy = "सजिलो", diffHard = "गाह्रो"
+    diffTitle = "कठिनाई छान्नुहोस्", diffEasy = "सजिलो", diffHard = "गाह्रो",
+    tutStep1Title = "१. बोर्ड र लक्ष्य",
+    tutStep1Desc = "बाघ चाल ५x५ को बोर्डमा खेलिन्छ। कुनामा ४ बाघ राखिन्छन् र ट्रेमा २० बाख्रा हुन्छन्। बाघले ५ बाख्रा खाएर जित्छ। बाख्राले चारै बाघलाई थुनेर जित्छ!",
+    tutStep2Title = "२. बाख्रा राख्ने चरण",
+    tutStep2Desc = "बाख्राको पहिलो पालो हुन्छ! खाली ठाउँमा पालैपालो २० वटै बाख्रा राख्नुहोस्। यो चरणमा बाख्रा सार्न पाइँदैन, राख्न मात्र पाइन्छ।",
+    tutStep3Title = "३. बाघले बाख्रा खाने",
+    tutStep3Desc = "बाघ रेखामा १ पाइला सर्छ। बाख्राको पछाडि खाली ठाउँ छ भने बाघ उफ्रेर बाख्रा खान सक्छ!",
+    tutStep4Title = "४. बाघ थुन्ने र जित्ने",
+    tutStep4Desc = "२० वटा बाख्रा राखिसकेपछि बाख्रा सार्न पाइन्छ। सबै बाख्रा मिलेर ४ वटै बाघका चालहरू बन्द गरी थुनेर जित्नुहोस्!",
+    tutNext = "अघिल्लो चरण ➔", tutPrev = "⬅ पछाडि", tutGotIt = "बुझेँ! खेल सुरु गरौं 🎮",
+    tutDiagStep2 = "👇 खाली ठाउँमा थिचेर बाख्रा राख्नुहोस्",
+    tutDiagStep3 = "🐅 बाख्रामाथि उफ्रेर बाख्रा खानुहोस्",
+    tutDiagStep4 = "🛡️ ४ वटै बाघलाई घेरेर थुन्नुहोस्"
 )
 
 @Composable
@@ -169,8 +211,10 @@ fun BaghChalApp() {
 
             if (engine.capturedCount > prevCap) {
                 SoundManager.playCaptureSound()
+                VibrationManager.vibrateCapture()
             } else {
                 SoundManager.playMoveSound()
+                VibrationManager.vibrateMove()
             }
 
             isCpuThinking = false
@@ -181,6 +225,7 @@ fun BaghChalApp() {
             if (engine.isGameOver) {
                 if (engine.winner == playerSide) {
                     SoundManager.playWinSound()
+                    VibrationManager.vibrateWin()
                     statusMsg = str.youWin
                 } else {
                     SoundManager.playLoseSound()
@@ -200,6 +245,7 @@ fun BaghChalApp() {
         statusMsg = if (playerSide == Turn.GOAT) str.yourTurn else str.cpuTurn
         gameTrigger++
         SoundManager.playMoveSound()
+        VibrationManager.vibrateMove()
         if (playerSide == Turn.TIGER) runCpuTurn()
     }
 
@@ -213,6 +259,7 @@ fun BaghChalApp() {
             if (engine.isGameOver) {
                 if (engine.winner == playerSide) {
                     SoundManager.playWinSound()
+                    VibrationManager.vibrateWin()
                     statusMsg = str.youWin
                 } else {
                     SoundManager.playLoseSound()
@@ -227,6 +274,7 @@ fun BaghChalApp() {
         if (playerSide == Turn.GOAT && engine.phase == GamePhase.PLACEMENT) {
             if (engine.placeGoat(r, c)) {
                 SoundManager.playMoveSound()
+                VibrationManager.vibrateMove()
                 updateGameStatusAfterPlayerMove()
             }
         } else {
@@ -238,8 +286,10 @@ fun BaghChalApp() {
                     engine.executeMove(mv)
                     if (engine.capturedCount > prevCap) {
                         SoundManager.playCaptureSound()
+                        VibrationManager.vibrateCapture()
                     } else {
                         SoundManager.playMoveSound()
+                        VibrationManager.vibrateMove()
                     }
                     updateGameStatusAfterPlayerMove()
                 } else {
@@ -248,6 +298,7 @@ fun BaghChalApp() {
                     if (clickedPiece == expectedPiece) {
                         selectedPoint = Pair(r, c)
                         validMoves = engine.getValidMoves(r, c)
+                        VibrationManager.vibrateMove()
                     } else {
                         selectedPoint = null
                         validMoves = emptyList()
@@ -259,6 +310,7 @@ fun BaghChalApp() {
                 if (clickedPiece == expectedPiece) {
                     selectedPoint = Pair(r, c)
                     validMoves = engine.getValidMoves(r, c)
+                    VibrationManager.vibrateMove()
                 }
             }
         }
@@ -433,7 +485,134 @@ fun BaghChalApp() {
                                     shape = RoundedCornerShape(8.dp)
                                 ) { Text(str.btnStart, fontSize = 16.sp) }
 
+                                OutlinedButton(
+                                    onClick = { currentScreen = AppScreen.TUTORIAL },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(top = 4.dp),
+                                    shape = RoundedCornerShape(8.dp)
+                                ) { Text(str.btnTutorial, fontSize = 14.sp, fontWeight = FontWeight.Bold) }
+
                                 TextButton(onClick = { currentScreen = AppScreen.LANG_SELECT }) { Text(str.btnChangeLang) }
+                            }
+
+                            AppScreen.TUTORIAL -> {
+                                var tutorialStep by remember { mutableIntStateOf(1) }
+
+                                val stepTitle = when (tutorialStep) {
+                                    1 -> str.tutStep1Title
+                                    2 -> str.tutStep2Title
+                                    3 -> str.tutStep3Title
+                                    else -> str.tutStep4Title
+                                }
+                                val stepDesc = when (tutorialStep) {
+                                    1 -> str.tutStep1Desc
+                                    2 -> str.tutStep2Desc
+                                    3 -> str.tutStep3Desc
+                                    else -> str.tutStep4Desc
+                                }
+
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text("📖 " + if (lang == Lang.EN) "Tutorial" else "ट्यूटोरियल", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1A1A1B))
+                                    Text("Step $tutorialStep / 4", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color(0xFF378ADD))
+                                }
+
+                                Spacer(modifier = Modifier.height(12.dp))
+
+                                // Interactive Visual Diagram Box
+                                Card(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 4.dp),
+                                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF0F2F5)),
+                                    shape = RoundedCornerShape(12.dp)
+                                ) {
+                                    Column(
+                                        modifier = Modifier.padding(16.dp),
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    ) {
+                                        when (tutorialStep) {
+                                            1 -> {
+                                                Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                                                    Box(modifier = Modifier.size(36.dp).background(Color(0xFFF5E0C8), CircleShape), contentAlignment = Alignment.Center) { Text("T", fontWeight = FontWeight.Bold, color = Color(0xFF7A3500)) }
+                                                    Text("vs", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                                                    Box(modifier = Modifier.size(36.dp).background(Color(0xFFE8F0DC), CircleShape), contentAlignment = Alignment.Center) { Text("G", fontWeight = FontWeight.Bold, color = Color(0xFF3B5A1A)) }
+                                                }
+                                            }
+                                            2 -> {
+                                                Text(str.tutDiagStep2, fontSize = 12.sp, color = Color(0xFF606770))
+                                                Spacer(modifier = Modifier.height(8.dp))
+                                                Box(modifier = Modifier.size(36.dp).background(Color(0xFF263278FF), CircleShape).border(2.dp, Color(0xFF3278FF), CircleShape), contentAlignment = Alignment.Center) { Text("+", fontSize = 20.sp, color = Color(0xFF3278FF), fontWeight = FontWeight.Bold) }
+                                            }
+                                            3 -> {
+                                                Text(str.tutDiagStep3, fontSize = 12.sp, color = Color(0xFF606770))
+                                                Spacer(modifier = Modifier.height(8.dp))
+                                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                                                    Box(modifier = Modifier.size(32.dp).background(Color(0xFFF5E0C8), CircleShape), contentAlignment = Alignment.Center) { Text("T", fontWeight = FontWeight.Bold, color = Color(0xFF7A3500)) }
+                                                    Text("➔", fontWeight = FontWeight.Bold)
+                                                    Box(modifier = Modifier.size(32.dp).background(Color(0xFFFFCDD2), CircleShape), contentAlignment = Alignment.Center) { Text("G", fontWeight = FontWeight.Bold, color = Color(0xFFD32F2F)) }
+                                                    Text("➔", fontWeight = FontWeight.Bold)
+                                                    Box(modifier = Modifier.size(32.dp).background(Color(0xFFE8F5E9), CircleShape).border(1.5.dp, Color(0xFF2E7D32), CircleShape), contentAlignment = Alignment.Center) { Text("🎯", fontSize = 12.sp) }
+                                                }
+                                            }
+                                            else -> {
+                                                Text(str.tutDiagStep4, fontSize = 12.sp, color = Color(0xFF606770))
+                                                Spacer(modifier = Modifier.height(8.dp))
+                                                Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                                                    Box(modifier = Modifier.size(28.dp).background(Color(0xFFE8F0DC), CircleShape), contentAlignment = Alignment.Center) { Text("G", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFF3B5A1A)) }
+                                                    Box(modifier = Modifier.size(32.dp).background(Color(0xFFF5E0C8), CircleShape).border(2.dp, Color(0xFFD32F2F), CircleShape), contentAlignment = Alignment.Center) { Text("T", fontWeight = FontWeight.Bold, color = Color(0xFF7A3500)) }
+                                                    Box(modifier = Modifier.size(28.dp).background(Color(0xFFE8F0DC), CircleShape), contentAlignment = Alignment.Center) { Text("G", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFF3B5A1A)) }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
+                                Spacer(modifier = Modifier.height(12.dp))
+
+                                Text(stepTitle, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1A1A1B))
+                                Spacer(modifier = Modifier.height(6.dp))
+                                Text(stepDesc, fontSize = 13.sp, color = Color(0xFF606770), lineHeight = 18.sp, textAlign = TextAlign.Center)
+
+                                Spacer(modifier = Modifier.height(16.dp))
+
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    if (tutorialStep > 1) {
+                                        OutlinedButton(
+                                            onClick = { tutorialStep = tutorialStep - 1 },
+                                            modifier = Modifier.weight(1f)
+                                        ) { Text(str.tutPrev) }
+                                    }
+
+                                    if (tutorialStep < 4) {
+                                        Button(
+                                            onClick = { tutorialStep = tutorialStep + 1 },
+                                            modifier = Modifier.weight(1f),
+                                            shape = RoundedCornerShape(8.dp)
+                                        ) { Text(str.tutNext) }
+                                    } else {
+                                        Button(
+                                            onClick = {
+                                                restartGame()
+                                                currentScreen = AppScreen.GAME
+                                            },
+                                            modifier = Modifier.weight(1.5f),
+                                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E7D32)),
+                                            shape = RoundedCornerShape(8.dp)
+                                        ) { Text(str.tutGotIt, fontWeight = FontWeight.Bold) }
+                                    }
+                                }
+
+                                TextButton(onClick = { currentScreen = AppScreen.SIDE_SELECT }) {
+                                    Text(str.btnChangeSide, fontSize = 13.sp)
+                                }
                             }
 
                             AppScreen.GAME -> {
