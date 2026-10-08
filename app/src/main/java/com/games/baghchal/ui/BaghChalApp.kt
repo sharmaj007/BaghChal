@@ -61,6 +61,8 @@ data class LocalizedStrings(
     val goatWinMsg: String,
     val statGoat: String,
     val statTiger: String,
+    val statStreak: String,
+    val statBestStreak: String,
     val drawMsg: String,
     val drawTitle: String,
     val diffTitle: String,
@@ -95,7 +97,8 @@ val stringsEN = LocalizedStrings(
     selectTiger = "Tap a tiger to move it", moveTiger = "Tap a highlighted point to move or capture",
     cpuThinking = "Thinking...",
     tigerWinMsg = "Tigers captured 5 goats — tigers win!", goatWinMsg = "All tigers trapped — goats win!",
-    statGoat = "Goat Wins", statTiger = "Tiger Wins", drawMsg = "Game drawn — too many repetitions", drawTitle = "DRAW!",
+    statGoat = "Goat Wins", statTiger = "Tiger Wins", statStreak = "Streak", statBestStreak = "Best Streak",
+    drawMsg = "Game drawn — too many repetitions", drawTitle = "DRAW!",
     diffTitle = "Select Difficulty", diffEasy = "Easy", diffHard = "Hard",
     tutStep1Title = "1. Board & Objective",
     tutStep1Desc = "BaghChal is played on a 5x5 grid with 4 Tigers at the corners and 20 Goats in the tray. Tigers win by capturing 5 goats. Goats win by surrounding & trapping all 4 tigers!",
@@ -124,7 +127,8 @@ val stringsNP = LocalizedStrings(
     selectTiger = "सार्न बाघमा थिच्नुहोस्", moveTiger = "हाइलाइट भएको ठाउँमा थिच्नुहोस् वा खानुहोस्",
     cpuThinking = "सोच्दैछ...",
     tigerWinMsg = "बाघले ५ बाख्रा खायो — बाघ जित्यो!", goatWinMsg = "सबै बाघ थुनियो — बाख्रा जित्यो!",
-    statGoat = "बाख्राको जित", statTiger = "बाघको जित", drawMsg = "खेल बराबरी भयो — धेरै पटक दोहोरियो", drawTitle = "बराबरी!",
+    statGoat = "बाख्राको जित", statTiger = "बाघको जित", statStreak = "श्रृङ्खला", statBestStreak = "उत्कृष्ट",
+    drawMsg = "खेल बराबरी भयो — धेरै पटक दोहोरियो", drawTitle = "बराबरी!",
     diffTitle = "कठिनाई छान्नुहोस्", diffEasy = "सजिलो", diffHard = "गाह्रो",
     tutStep1Title = "१. बोर्ड र लक्ष्य",
     tutStep1Desc = "बाघ चाल ५x५ को बोर्डमा खेलिन्छ। कुनामा ४ बाघ राखिन्छन् र ट्रेमा २० बाख्रा हुन्छन्। बाघले ५ बाख्रा खाएर जित्छ। बाख्राले चारै बाघलाई थुनेर जित्छ!",
@@ -226,9 +230,11 @@ fun BaghChalApp() {
                 if (engine.winner == playerSide) {
                     SoundManager.playWinSound()
                     VibrationManager.vibrateWin()
+                    StatsManager.recordWin(playerSide)
                     statusMsg = str.youWin
                 } else {
                     SoundManager.playLoseSound()
+                    if (!engine.isDraw) StatsManager.recordLoss()
                     statusMsg = if (engine.isDraw) str.drawMsg else str.cpuWin
                 }
             } else {
@@ -260,9 +266,11 @@ fun BaghChalApp() {
                 if (engine.winner == playerSide) {
                     SoundManager.playWinSound()
                     VibrationManager.vibrateWin()
+                    StatsManager.recordWin(playerSide)
                     statusMsg = str.youWin
                 } else {
                     SoundManager.playLoseSound()
+                    if (!engine.isDraw) StatsManager.recordLoss()
                     statusMsg = if (engine.isDraw) str.drawMsg else str.cpuWin
                 }
             } else {
@@ -453,9 +461,43 @@ fun BaghChalApp() {
                                     }
                                 }
 
-                                Spacer(modifier = Modifier.height(16.dp))
+                                Spacer(modifier = Modifier.height(12.dp))
+
+                                // Player Stats & Win Streaks Card
+                                Card(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF0F2F5)),
+                                    shape = RoundedCornerShape(12.dp)
+                                ) {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(10.dp),
+                                        horizontalArrangement = Arrangement.SpaceEvenly,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                            Text("🔥 ${StatsManager.currentStreak}", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color(0xFFC45A00))
+                                            Text(str.statStreak, fontSize = 10.sp, color = Color(0xFF606770))
+                                        }
+                                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                            Text("🏆 ${StatsManager.bestStreak}", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color(0xFF2E7D32))
+                                            Text(str.statBestStreak, fontSize = 10.sp, color = Color(0xFF606770))
+                                        }
+                                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                            Text("🐐 ${StatsManager.goatWins}", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color(0xFF3B5A1A))
+                                            Text(str.statGoat, fontSize = 10.sp, color = Color(0xFF606770))
+                                        }
+                                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                            Text("🐅 ${StatsManager.tigerWins}", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color(0xFF7A3500))
+                                            Text(str.statTiger, fontSize = 10.sp, color = Color(0xFF606770))
+                                        }
+                                    }
+                                }
+
+                                Spacer(modifier = Modifier.height(12.dp))
                                 Text(str.diffTitle, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                                Spacer(modifier = Modifier.height(8.dp))
+                                Spacer(modifier = Modifier.height(6.dp))
 
                                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                     OutlinedButton(
@@ -475,7 +517,7 @@ fun BaghChalApp() {
                                     ) { Text(str.diffHard) }
                                 }
 
-                                Spacer(modifier = Modifier.height(16.dp))
+                                Spacer(modifier = Modifier.height(14.dp))
                                 Button(
                                     onClick = {
                                         restartGame()
