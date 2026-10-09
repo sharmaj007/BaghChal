@@ -15,8 +15,8 @@ android {
         applicationId = "com.games.baghchal"
         minSdk = 24
         targetSdk = 36
-        versionCode = 13
-        versionName = "1.8"
+        versionCode = 14
+        versionName = "1.9"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -26,8 +26,7 @@ android {
             applicationIdSuffix = ".debug"
         }
         release {
-            isMinifyEnabled = true
-            isShrinkResources = true
+            isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
