@@ -70,15 +70,9 @@ canvas{display:block;margin:0 auto;max-width:100%;height:auto;cursor:pointer}
   50% { opacity: 0.6; }
 }
 #tray{background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:8px 12px;margin-bottom:8px}
-#tray-label{font-size:11px;color:var(--color-text-secondary);margin-bottom:5px}
-#tray-icons{display:flex;flex-wrap:wrap;gap:3px}
 #game-rule{font-size:11px;color:var(--color-text-secondary);text-align:center;padding:8px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);margin-top:4px;line-height:1.4}
 .gi{width:14px;height:14px;border-radius:50%;background:#e8e0c8;border:1.5px solid #8a7a5a;display:inline-block}
 .gi.used{background:var(--color-background-tertiary);border-color:var(--color-border-tertiary);opacity:0.25}
-#stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px;padding-top:16px;border-top:0.5px solid var(--color-border-secondary)}
-.stat-box{text-align:center}
-.stat-val{font-size:16px;font-weight:600;color:var(--color-text-primary)}
-.stat-lbl{font-size:10px;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.5px}
 #diff-sel{margin-bottom:14px}
 #diff-title{font-size:14px;font-weight:500;color:var(--color-text-primary);margin-bottom:8px;text-align:center}
 .diff-cards{display:grid;grid-template-columns:1fr 1fr;gap:8px}
@@ -121,6 +115,14 @@ canvas{display:block;margin:0 auto;max-width:100%;height:auto;cursor:pointer}
       <div class="sel-desc" id="tiger-desc"></div>
     </div>
   </div>
+
+  <div id="stats" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px;padding:10px;background:var(--color-background-secondary);border-radius:12px;text-align:center">
+    <div class="stat-box"><div class="stat-val" id="stat-streak" style="color:#c45a00;font-size:15px;font-weight:bold">🔥 0</div><div class="stat-lbl" id="lbl-stat-streak" style="font-size:10px;color:#606770">Streak</div></div>
+    <div class="stat-box"><div class="stat-val" id="stat-best" style="color:#2e7d32;font-size:15px;font-weight:bold">🏆 0</div><div class="stat-lbl" id="lbl-stat-best" style="font-size:10px;color:#606770">Best</div></div>
+    <div class="stat-box"><div class="stat-val" id="stat-goat" style="color:#3b5a1a;font-size:15px;font-weight:bold">🐐 0</div><div class="stat-lbl" id="lbl-stat-goat" style="font-size:10px;color:#606770">Goat</div></div>
+    <div class="stat-box"><div class="stat-val" id="stat-tiger" style="color:#7a3500;font-size:15px;font-weight:bold">🐅 0</div><div class="stat-lbl" id="lbl-stat-tiger" style="font-size:10px;color:#606770">Tiger</div></div>
+  </div>
+
   <div id="diff-sel">
     <div id="diff-title"></div>
     <div class="diff-cards">
@@ -129,11 +131,23 @@ canvas{display:block;margin:0 auto;max-width:100%;height:auto;cursor:pointer}
     </div>
   </div>
   <button class="btn-primary" id="btn-start" disabled onclick="startGame()"></button>
-  <button class="btn-secondary" onclick="goToLang()"></button>
-  <div id="stats">
-    <div class="stat-box"><div class="stat-val" id="stat-goat">0</div><div class="stat-lbl" id="lbl-stat-goat">Goat Wins</div></div>
-    <div class="stat-box"><div class="stat-val" id="stat-tiger">0</div><div class="stat-lbl" id="lbl-stat-tiger">Tiger Wins</div></div>
+  <button class="btn-primary" id="btn-tutorial" onclick="goToTutorial()" style="background:transparent;border:1px solid #378ADD;color:#378ADD;margin-top:4px"></button>
+  <button class="btn-secondary" onclick="goToLang()" style="margin-top:4px"></button>
+</div>
+
+<div id="screen-tutorial" class="screen">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+    <h3 id="tut-header" style="font-size:16px;font-weight:bold"></h3>
+    <span id="tut-step-badge" style="font-size:12px;font-weight:bold;color:#378ADD">Step 1 / 4</span>
   </div>
+  <div style="background:var(--color-background-secondary);padding:16px;border-radius:12px;text-align:center;margin-bottom:12px" id="tut-diagram"></div>
+  <h4 id="tut-step-title" style="font-size:16px;font-weight:bold;margin-bottom:6px"></h4>
+  <p id="tut-step-desc" style="font-size:13px;color:var(--color-text-secondary);line-height:1.4;text-align:center;margin-bottom:16px"></p>
+  <div style="display:flex;gap:8px;margin-bottom:8px">
+    <button class="btn-secondary" id="btn-tut-prev" onclick="prevTutStep()" style="display:none"></button>
+    <button class="btn-primary" id="btn-tut-next" onclick="nextTutStep()"></button>
+  </div>
+  <button class="btn-secondary" onclick="goToSelect()" id="btn-tut-back"></button>
 </div>
 
 <div id="screen-game" class="screen">
@@ -141,7 +155,6 @@ canvas{display:block;margin:0 auto;max-width:100%;height:auto;cursor:pointer}
     <span id="status-pill" class="pill-player"></span>
     <div id="top-controls">
       <button id="btn-sound" class="icon-btn" onclick="toggleSound()" title="Sound On/Off">🔊</button>
-      <button id="btn-undo" class="icon-btn" onclick="undoMove()" disabled title="Undo Move">↩️</button>
       <button id="btn-back" onclick="goToSelect()"></button>
     </div>
   </div>
@@ -151,7 +164,18 @@ canvas{display:block;margin:0 auto;max-width:100%;height:auto;cursor:pointer}
   </div>
   <div id="board-wrap"><canvas id="board" width="316" height="316"></canvas></div>
   <div id="status-msg"></div>
-  <div id="tray"><div id="tray-label"></div><div id="tray-icons"></div></div>
+  <div id="game-over-banner" style="display:none;background:#e8f5e9;border:2px solid #2e7d32;border-radius:12px;padding:16px;text-align:center;margin-bottom:12px">
+    <h2 id="go-title" style="font-size:26px;font-weight:800;color:#2e7d32;margin-bottom:6px"></h2>
+    <p id="go-sub" style="font-size:13px;font-weight:600;color:#1a1a1b;margin-bottom:12px"></p>
+    <button class="btn-primary" id="btn-play-again" onclick="startGame()" style="background:#2e7d32;color:#fff;border:none;padding:12px;font-weight:bold"></button>
+  </div>
+  <div id="tray">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+      <div id="tray-label" style="font-size:11px;color:#606770"></div>
+      <div id="player-side-badge" style="font-size:11px;font-weight:bold"></div>
+    </div>
+    <div id="tray-icons"></div>
+  </div>
   <div id="game-rule"></div>
 </div>
 </div>
@@ -162,38 +186,63 @@ const T={
     selTitle:'Choose your side',selSub:'Pick a piece — computer plays the other side',
     goatName:'Goat',goatDesc:'Place & surround tigers. Win by trapping all 4.',
     tigerName:'Tiger',tigerDesc:'Jump & capture goats. Win by catching 5.',
-    btnStart:'Start game',btnChangeLang:'Change language',btnBack:'Restart',
-    yourTurn:'Your turn',cpuTurn:'Computer thinking...',youWin:'You win!',cpuWin:'Computer wins',
+    btnStart:'Start game',btnChangeLang:'Change language',btnChangeSide:'Change Side',btnBack:'Play Again',
+    btnTutorial:'📖 How to Play / Tutorial',
+    yourTurn:'Your turn',cpuTurn:'Thinking...',youWin:'YOU WIN!',cpuWin:'COMPUTER WINS',
     capLabel:'Goats captured',leftLabel:'Goats to place',trayLabel:'Goat tray',
     placeGoat:'Tap any empty point to place a goat',
     selectGoat:'Tap your goat to move it',moveGoat:'Tap a highlighted point to move',
     selectTiger:'Tap a tiger to move it',moveTiger:'Tap a highlighted point to move or capture',
-    cpuThinking:'Computer is thinking...',
+    cpuThinking:'Thinking...',
     tigerWinMsg:'Tigers captured 5 goats — tigers win!',goatWinMsg:'All tigers trapped — goats win!',
-    statGoat:'Goat Wins', statTiger:'Tiger Wins', drawMsg:'Game drawn — too many repetitions', drawTitle:'Draw!',
-    diffTitle:'Select Difficulty', diffEasy:'Easy', diffHard:'Hard', undoBtn:'Undo'
+    statGoat:'Goat', statTiger:'Tiger', statStreak:'Streak', statBestStreak:'Best', drawMsg:'Game drawn — too many repetitions', drawTitle:'DRAW!',
+    diffTitle:'Select Difficulty', diffEasy:'Easy', diffHard:'Hard',
+    tutHeader:'Tutorial',
+    tutStep1Title:'1. Board & Objective', tutStep1Desc:'BaghChal is played on a 5x5 grid with 4 Tigers at the corners and 20 Goats in the tray. Tigers win by capturing 5 goats. Goats win by surrounding & trapping all 4 tigers!',
+    tutStep2Title:'2. Goat Placement Phase', tutStep2Desc:'Goats start first! Place all 20 goats one by one on empty intersections. Goats cannot move until all 20 goats are placed.',
+    tutStep3Title:'3. Tiger Jump Capture', tutStep3Desc:'Tigers move 1 step along grid lines. A tiger can jump over an adjacent goat into an empty space behind it to CAPTURE the goat!',
+    tutStep4Title:'4. Goat Movement & Trapping', tutStep4Desc:'After placing 20 goats, goats move 1 step along grid lines. Coordinate goats to block all moves for all 4 tigers to TRAP them and WIN!',
+    tutNext:'Next Step ➔', tutPrev:'⬅ Back', tutGotIt:'Got it! Play Game 🎮',
+    tutDiagStep2:'👇 Tap empty spot to place goat', tutDiagStep3:'🐅 Jump over goat to capture', tutDiagStep4:'🛡️ Surround and trap all 4 tigers'
   },
   np:{
     selTitle:'आफ्नो पक्ष छान्नुहोस्',selSub:'एउटा टोकन छान्नुहोस् — कम्प्युटरले अर्को खेल्छ',
     goatName:'बाख्रा',goatDesc:'बाघलाई घेर्नुहोस्। चारै बाघ थुन्यो भने जित्नुहुन्छ।',
     tigerName:'बाघ',tigerDesc:'बाख्रा उफ्रेर खानुहोस्। ५ बाख्रा खायो भने जित्नुहुन्छ।',
-    btnStart:'खेल सुरु गर्नुहोस्',btnChangeLang:'भाषा फेर्नुहोस्',btnBack:'रिस्टार्ट',
-    yourTurn:'तपाईंको पालो',cpuTurn:'कम्प्युटर सोच्दैछ...',youWin:'तपाईं जित्नुभयो!',cpuWin:'कम्प्युटर जित्यो',
+    btnStart:'खेल सुरु गर्नुहोस्',btnChangeLang:'भाषा फेर्नुहोस्',btnChangeSide:'पक्ष फेर्नुहोस्',btnBack:'फेरि खेल्नुहोस्',
+    btnTutorial:'📖 कसरी खेल्ने / ट्यूटोरियल',
+    yourTurn:'तपाईंको पालो',cpuTurn:'सोच्दैछ...',youWin:'तपाईं जित्नुभयो!',cpuWin:'कम्प्युटर जित्यो',
     capLabel:'खाइएका बाख्रा',leftLabel:'राख्न बाँकी बाख्रा',trayLabel:'बाख्रा ट्रे',
     placeGoat:'खाली ठाउँमा थिचेर बाख्रा राख्नुहोस्',
     selectGoat:'सार्न बाख्रामा थिच्नुहोस्',moveGoat:'हाइलाइट भएको ठाउँमा थिच्नुहोस्',
     selectTiger:'सार्न बाघमा थिच्नुहोस्',moveTiger:'हाइलाइट भएको ठाउँमा थिच्नुहोस् वा खानुहोस्',
-    cpuThinking:'कम्प्युटर सोच्दैछ...',
+    cpuThinking:'सोच्दैछ...',
     tigerWinMsg:'बाघले ५ बाख्रा खायो — बाघ जित्यो!',goatWinMsg:'सबै बाघ थुनियो — बाख्रा जित्यो!',
-    statGoat:'बाख्राको जित', statTiger:'बाघको जित', drawMsg:'खेल बराबरी भयो — धेरै पटक दोहोरियो', drawTitle:'बराबरी!',
-    diffTitle:'कठिनाई छान्नुहोस्', diffEasy:'सजिलो', diffHard:'गाह्रो', undoBtn:'फर्कनुहोस्'
+    statGoat:'बाख्रा', statTiger:'बाघ', statStreak:'श्रृङ्खला', statBestStreak:'उत्कृष्ट', drawMsg:'खेल बराबरी भयो — धेरै पटक दोहोरियो', drawTitle:'बराबरी!',
+    diffTitle:'कठिनाई छान्नुहोस्', diffEasy:'सजिलो', diffHard:'गाह्रो',
+    tutHeader:'ट्यूटोरियल',
+    tutStep1Title:'१. बोर्ड र लक्ष्य', tutStep1Desc:'बाघ चाल ५x५ को बोर्डमा खेलिन्छ। कुनामा ४ बाघ राखिन्छन् र ट्रेमा २० बाख्रा हुन्छन्। बाघले ५ बाख्रा खाएर जित्छ। बाख्राले चारै बाघलाई थुनेर जित्छ!',
+    tutStep2Title:'२. बाख्रा राख्ने चरण', tutStep2Desc:'बाख्राको पहिलो पालो हुन्छ! खाली ठाउँमा पालैपालो २० वटै बाख्रा राख्नुहोस्। यो चरणमा बाख्रा सार्न पाइँदैन, राख्न मात्र पाइन्छ।',
+    tutStep3Title:'३. बाघले बाख्रा खाने', tutStep3Desc:'बाघ रेखामा १ पाइला सर्छ। बाख्राको पछाडि खाली ठाउँ छ भने बाघ उफ्रेर बाख्रा खान सक्छ!',
+    tutStep4Title:'४. बाघ थुन्ने र जित्ने', tutStep4Desc:'२० वटा बाख्रा राखिसकेपछि बाख्रा सार्न पाइन्छ। सबै बाख्रा मिलेर ४ वटै बाघका चालहरू बन्द गरी थुनेर जित्नुहोस्!',
+    tutNext:'अघिल्लो चरण ➔', tutPrev:'⬅ पछाडि', tutGotIt:'बुझेँ! खेल सुरु गरौं 🎮',
+    tutDiagStep2:'👇 खाली ठाउँमा थिचेर बाख्रा राख्नुहोस्', tutDiagStep3:'🐅 बाख्रामाथि उफ्रेर बाख्रा खानुहोस्', tutDiagStep4:'🛡️ ४ वटै बाघलाई घेरेर थुन्नुहोस्'
   }
 };
 
-let lang='en',playerSide='G',difficulty='hard';
+let lang='en',playerSide='G',difficulty='hard',tutStep=1;
 let board,tigers,goatsLeft,captured,phase,selected,turn,winner,gameOver,cpuThinking,lastCPUMove=null;
-let stats = { G: 0, T: 0 }, boardHistory = {}, moveHistory = [];
+let stats = { streak: 0, best: 0, goat: 0, tiger: 0 };
+let boardHistory = {};
 let soundEnabled = true, audioCtx = null;
+
+function vibrate(type) {
+  if ('vibrate' in navigator) {
+    if (type === 'move') navigator.vibrate(25);
+    else if (type === 'capture') navigator.vibrate(60);
+    else if (type === 'win') navigator.vibrate([100, 80, 100, 80, 200]);
+  }
+}
 
 function getAudioContext() {
   if (!audioCtx) {
@@ -222,7 +271,7 @@ function playTone(freq, type, duration, gainVal = 0.1) {
     osc.type = type;
     osc.frequency.setValueAtTime(freq, ctx.currentTime);
     gain.gain.setValueAtTime(gainVal, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
     osc.connect(gain);
     gain.connect(ctx.destination);
     osc.start();
@@ -230,13 +279,15 @@ function playTone(freq, type, duration, gainVal = 0.1) {
   } catch (e) {}
 }
 
-function playMoveSound() { playTone(440, 'sine', 0.1, 0.12); }
+function playMoveSound() { playTone(440, 'sine', 0.1, 0.12); vibrate('move'); }
 function playCaptureSound() {
   playTone(180, 'triangle', 0.2, 0.2);
+  vibrate('capture');
   setTimeout(() => playTone(120, 'square', 0.18, 0.18), 70);
 }
 function playWinSound() {
   if (!soundEnabled) return;
+  vibrate('win');
   [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
     setTimeout(() => playTone(freq, 'sine', 0.25, 0.18), idx * 90);
   });
@@ -248,62 +299,32 @@ function playLoseSound() {
   });
 }
 
-function saveSnapshot() {
-  moveHistory.push({
-    board: board.map(r => [...r]),
-    tigers: tigers.map(t => [...t]),
-    goatsLeft,
-    captured,
-    phase,
-    turn,
-    winner,
-    gameOver,
-    lastCPUMove: lastCPUMove ? JSON.parse(JSON.stringify(lastCPUMove)) : null,
-    boardHistory: JSON.parse(JSON.stringify(boardHistory))
-  });
-  updateUndoButton();
-}
-
-function updateUndoButton() {
-  const btn = document.getElementById('btn-undo');
-  if (btn) btn.disabled = (moveHistory.length === 0 || cpuThinking);
-}
-
-function undoMove() {
-  if (moveHistory.length === 0 || cpuThinking) return;
-  const last = moveHistory.pop();
-  board = last.board;
-  tigers = last.tigers;
-  goatsLeft = last.goatsLeft;
-  captured = last.captured;
-  phase = last.phase;
-  turn = last.turn;
-  winner = last.winner;
-  gameOver = last.gameOver;
-  lastCPUMove = last.lastCPUMove;
-  boardHistory = last.boardHistory;
-  selected = null;
-  renderAll();
-  updateUndoButton();
-  playMoveSound();
-}
-
 function loadStats() {
-  const saved = localStorage.getItem('bagh_chal_stats');
+  const saved = localStorage.getItem('bagh_chal_player_stats');
   if (saved) {
     try { stats = JSON.parse(saved); } catch(e){}
   }
-  if (!stats) stats = { G: 0, T: 0 };
-  const gEl = document.getElementById('stat-goat');
-  const tEl = document.getElementById('stat-tiger');
-  if (gEl) gEl.textContent = stats.G || 0;
-  if (tEl) tEl.textContent = stats.T || 0;
+  if (!stats) stats = { streak: 0, best: 0, goat: 0, tiger: 0 };
+  document.getElementById('stat-streak').textContent = '🔥 ' + (stats.streak || 0);
+  document.getElementById('stat-best').textContent = '🏆 ' + (stats.best || 0);
+  document.getElementById('stat-goat').textContent = '🐐 ' + (stats.goat || 0);
+  document.getElementById('stat-tiger').textContent = '🐅 ' + (stats.tiger || 0);
 }
 
-function updateStats(w) {
-  if (!stats) stats = { G: 0, T: 0 };
-  stats[w] = (stats[w] || 0) + 1;
-  localStorage.setItem('bagh_chal_stats', JSON.stringify(stats));
+function recordWin() {
+  if (!stats) stats = { streak: 0, best: 0, goat: 0, tiger: 0 };
+  if (playerSide === 'G') stats.goat = (stats.goat || 0) + 1;
+  else stats.tiger = (stats.tiger || 0) + 1;
+  stats.streak = (stats.streak || 0) + 1;
+  if (stats.streak > (stats.best || 0)) stats.best = stats.streak;
+  localStorage.setItem('bagh_chal_player_stats', JSON.stringify(stats));
+  loadStats();
+}
+
+function recordLoss() {
+  if (!stats) stats = { streak: 0, best: 0, goat: 0, tiger: 0 };
+  stats.streak = 0;
+  localStorage.setItem('bagh_chal_player_stats', JSON.stringify(stats));
   loadStats();
 }
 
@@ -322,18 +343,22 @@ function applyLang(){
   document.getElementById('tiger-name').textContent=l.tigerName;
   document.getElementById('tiger-desc').textContent=l.tigerDesc;
   document.getElementById('btn-start').textContent=l.btnStart;
+  document.getElementById('btn-tutorial').textContent=l.btnTutorial;
   document.querySelectorAll('.btn-secondary')[0].textContent=l.btnChangeLang;
-  document.getElementById('btn-back').textContent=l.btnBack;
+  document.getElementById('btn-back').textContent=l.btnChangeSide;
   document.getElementById('lbl-cap').textContent=l.capLabel;
   document.getElementById('lbl-left').textContent=l.leftLabel;
   document.getElementById('tray-label').textContent=l.trayLabel;
+  document.getElementById('lbl-stat-streak').textContent=l.statStreak;
+  document.getElementById('lbl-stat-best').textContent=l.statBestStreak;
   document.getElementById('lbl-stat-goat').textContent=l.statGoat;
   document.getElementById('lbl-stat-tiger').textContent=l.statTiger;
   document.getElementById('diff-title').textContent=l.diffTitle;
   document.getElementById('diff-easy').textContent=l.diffEasy;
   document.getElementById('diff-hard').textContent=l.diffHard;
-  const uBtn = document.getElementById('btn-undo');
-  if (uBtn) uBtn.title = l.undoBtn;
+  document.getElementById('btn-play-again').textContent=l.btnBack;
+  document.getElementById('btn-tut-back').textContent=l.btnChangeSide;
+  document.getElementById('tut-header').textContent=l.tutHeader;
 }
 
 function show(id){
@@ -364,6 +389,53 @@ function goToSelect(){
   show('screen-select');
 }
 
+function goToTutorial(){
+  applyLang();
+  tutStep = 1;
+  renderTutorialStep();
+  show('screen-tutorial');
+}
+
+function renderTutorialStep() {
+  const l = T[lang];
+  document.getElementById('tut-step-badge').textContent = (lang === 'en' ? 'Step ' : 'चरण ') + tutStep + ' / 4';
+  const diag = document.getElementById('tut-diagram');
+  if (tutStep === 1) {
+    diag.innerHTML = '<div style="display:flex;justify-content:center;align-items:center;gap:16px"><div style="width:36px;height:36px;border-radius:50%;background:#f5e0c8;color:#7a3500;font-weight:bold;display:flex;align-items:center;justify-content:center">T</div><span style="font-weight:bold">vs</span><div style="width:36px;height:36px;border-radius:50%;background:#e8f0dc;color:#3b5a1a;font-weight:bold;display:flex;align-items:center;justify-content:center">G</div></div>';
+    document.getElementById('tut-step-title').textContent = l.tutStep1Title;
+    document.getElementById('tut-step-desc').textContent = l.tutStep1Desc;
+  } else if (tutStep === 2) {
+    diag.innerHTML = '<div style="font-size:12px;color:#606770;margin-bottom:6px">' + l.tutDiagStep2 + '</div><div style="width:36px;height:36px;border-radius:50%;background:rgba(50,120,255,0.15);border:2px solid #3278ff;color:#3278ff;font-weight:bold;font-size:20px;display:flex;align-items:center;justify-content:center;margin:0 auto">+</div>';
+    document.getElementById('tut-step-title').textContent = l.tutStep2Title;
+    document.getElementById('tut-step-desc').textContent = l.tutStep2Desc;
+  } else if (tutStep === 3) {
+    diag.innerHTML = '<div style="font-size:12px;color:#606770;margin-bottom:6px">' + l.tutDiagStep3 + '</div><div style="display:flex;justify-content:center;align-items:center;gap:8px"><div style="width:32px;height:32px;border-radius:50%;background:#f5e0c8;color:#7a3500;font-weight:bold;display:flex;align-items:center;justify-content:center">T</div><span>➔</span><div style="width:32px;height:32px;border-radius:50%;background:#ffcdd2;color:#d32f2f;font-weight:bold;display:flex;align-items:center;justify-content:center">G</div><span>➔</span><div style="width:32px;height:32px;border-radius:50%;background:#e8f5e9;border:1.5px solid #2e7d32;display:flex;align-items:center;justify-content:center">🎯</div></div>';
+    document.getElementById('tut-step-title').textContent = l.tutStep3Title;
+    document.getElementById('tut-step-desc').textContent = l.tutStep3Desc;
+  } else {
+    diag.innerHTML = '<div style="font-size:12px;color:#606770;margin-bottom:6px">' + l.tutDiagStep4 + '</div><div style="display:flex;justify-content:center;align-items:center;gap:6px"><div style="width:28px;height:28px;border-radius:50%;background:#e8f0dc;color:#3b5a1a;font-weight:bold;font-size:11px;display:flex;align-items:center;justify-content:center">G</div><div style="width:32px;height:32px;border-radius:50%;background:#f5e0c8;border:2px solid #d32f2f;color:#7a3500;font-weight:bold;display:flex;align-items:center;justify-content:center">T</div><div style="width:28px;height:28px;border-radius:50%;background:#e8f0dc;color:#3b5a1a;font-weight:bold;font-size:11px;display:flex;align-items:center;justify-content:center">G</div></div>';
+    document.getElementById('tut-step-title').textContent = l.tutStep4Title;
+    document.getElementById('tut-step-desc').textContent = l.tutStep4Desc;
+  }
+
+  document.getElementById('btn-tut-prev').style.display = tutStep > 1 ? 'block' : 'none';
+  document.getElementById('btn-tut-prev').textContent = l.tutPrev;
+  if (tutStep < 4) {
+    document.getElementById('btn-tut-next').textContent = l.tutNext;
+    document.getElementById('btn-tut-next').onclick = nextTutStep;
+    document.getElementById('btn-tut-next').style.background = 'var(--color-background-primary)';
+    document.getElementById('btn-tut-next').style.color = 'var(--color-text-primary)';
+  } else {
+    document.getElementById('btn-tut-next').textContent = l.tutGotIt;
+    document.getElementById('btn-tut-next').onclick = function(){ startGame(); };
+    document.getElementById('btn-tut-next').style.background = '#2e7d32';
+    document.getElementById('btn-tut-next').style.color = '#ffffff';
+  }
+}
+
+function prevTutStep(){ if(tutStep > 1){ tutStep--; renderTutorialStep(); } }
+function nextTutStep(){ if(tutStep < 4){ tutStep++; renderTutorialStep(); } }
+
 function selectDiff(d){
   difficulty=d;
   document.getElementById('diff-easy').classList.toggle('chosen',d==='easy');
@@ -384,8 +456,10 @@ function startGame(){
   tigers=[[0,0],[0,4],[4,0],[4,4]];
   goatsLeft=20;captured=0;phase=1;selected=null;turn='G';winner=null;gameOver=false;cpuThinking=false;lastCPUMove=null;
   boardHistory = {};
-  moveHistory = [];
-  updateUndoButton();
+  document.getElementById('game-over-banner').style.display = 'none';
+  document.getElementById('status-msg').style.display = 'block';
+  document.getElementById('player-side-badge').textContent = lang === 'en' ? (playerSide==='G'?'You: Goat (G)':'You: Tiger (T)') : (playerSide==='G'?'तपाईं: बाख्रा (G)':'तपाईं: बाघ (T)');
+  document.getElementById('player-side-badge').style.color = playerSide==='G'?'#3b5a1a':'#7a3500';
   document.getElementById('game-rule').textContent = playerSide === 'G' ? T[lang].goatDesc : T[lang].tigerDesc;
   show('screen-game');
   recordState();
@@ -410,11 +484,11 @@ function getMoves(r,c){
   const moves=[];
   if(board[r][c]==='T'){
     for(let nr=0;nr<5;nr++)for(let nc=0;nc<5;nc++){
-      if(!board[nr][nc]&&isAdj(r,c,nr,nc))moves.push({r:nr,c:nc,capture:null});
-      if(board[nr][nc]==='G'&&isAdj(r,c,nr,nc)){const jr=nr+(nr-r),jc=nc+(nc-c);if(jr>=0&&jr<5&&jc>=0&&jc<5&&!board[jr][jc]&&isAdj(nr,nc,jr,jc))moves.push({r:jr,c:jc,capture:[nr,nc]});}
+      if(!board[nr][nc]&&isAdj(r,c,nr,nc))moves.push({piece:'T',fr:r,fc:c,r:nr,c:nc,capture:null});
+      if(board[nr][nc]==='G'&&isAdj(r,c,nr,nc)){const jr=nr+(nr-r),jc=nc+(nc-c);if(jr>=0&&jr<5&&jc>=0&&jc<5&&!board[jr][jc]&&isAdj(nr,nc,jr,jc))moves.push({piece:'T',fr:r,fc:c,r:jr,c:jc,capture:[nr,nc]});}
     }
   } else {
-    for(let nr=0;nr<5;nr++)for(let nc=0;nc<5;nc++){if(!board[nr][nc]&&isAdj(r,c,nr,nc))moves.push({r:nr,c:nc,capture:null});}
+    for(let nr=0;nr<5;nr++)for(let nc=0;nc<5;nc++){if(!board[nr][nc]&&isAdj(r,c,nr,nc))moves.push({piece:'G',fr:r,fc:c,r:nr,c:nc,capture:null});}
   }
   return moves;
 }
@@ -454,7 +528,7 @@ function minimax(brd,tig,cap,gl,ph,depth,alpha,beta,maxing){
   } else {
     let best=9999;
     if(ph===1&&gl>0){
-      for(let nr=0;nr<5;nr++)for(let nc=0;nc<5;nc++){if(!brd[nr][nc]){const nb=brd.map(r=>[...r]);nb[nr][nc]='G';const v=minimax(nb,tig,cap,gl-1,gl-1===0?2:1,depth-1,alpha,beta,true);best=Math.min(best,v);beta=Math.min(beta,v);if(beta<=alpha)break;}}
+      for(let nr=0;nr<5;nr++)for(let nc=0;nc<5;nc++){if(!brd[nr][nc]){const nb=brd.map(x=>[...x]);nb[nr][nc]='G';const v=minimax(nb,tig,cap,gl-1,gl-1===0?2:1,depth-1,alpha,beta,true);best=Math.min(best,v);beta=Math.min(beta,v);if(beta<=alpha)break;}}
     } else {
       const gms=[];for(let r=0;r<5;r++)for(let c=0;c<5;c++){if(brd[r][c]==='G')for(let nr=0;nr<5;nr++)for(let nc=0;nc<5;nc++){if(!brd[nr][nc]&&isAdj(r,c,nr,nc))gms.push({piece:'G',fr:r,fc:c,r:nr,c:nc,capture:null});}}
       if(!gms.length)return 1000;
@@ -467,7 +541,7 @@ function minimax(brd,tig,cap,gl,ph,depth,alpha,beta,maxing){
 function bestTigerMove(){
   let best=-9999,bestMv=null;
   const moves=[];
-  for(const[tr,tc]of tigers){for(let nr=0;nr<5;nr++)for(let nc=0;nc<5;nc++){if(!board[nr][nc]&&isAdj(tr,tc,nr,nc) )moves.push({piece:'T',fr:tr,fc:tc,r:nr,c:nc,capture:null});if(board[nr][nc]==='G'&&isAdj(tr,tc,nr,nc)){const jr=nr+(nr-tr),jc=nc+(nc-tc);if(jr>=0&&jr<5&&jc>=0&&jc<5&&!board[jr][jc]&&isAdj(nr,nc,jr,jc))moves.push({piece:'T',fr:tr,fc:tc,r:jr,c:jc,capture:[nr,nc]});}}}
+  for(const[tr,tc]of tigers){for(let nr=0;nr<5;nr++)for(let nc=0;nc<5;nc++){if(!board[nr][nc]&&isAdj(tr,tc,nr,nc))moves.push({piece:'T',fr:tr,fc:tc,r:nr,c:nc,capture:null});if(board[nr][nc]==='G'&&isAdj(tr,tc,nr,nc)){const jr=nr+(nr-tr),jc=nc+(nc-tc);if(jr>=0&&jr<5&&jc>=0&&jc<5&&!board[jr][jc]&&isAdj(nr,nc,jr,jc))moves.push({piece:'T',fr:tr,fc:tc,r:jr,c:jc,capture:[nr,nc]});}}}
   moves.sort((a,b)=>(b.capture?1:0)-(a.capture?1:0));
   const d = difficulty === 'hard' ? 3 : 1;
   for(const mv of moves){const{board:nb,tigers:nt,captured:nc}=applyMove(mv,board,tigers,captured);const v=minimax(nb,nt,nc,goatsLeft,phase,d,-9999,9999,false);if(v>best){best=v;bestMv=mv;}}
@@ -490,7 +564,6 @@ function bestGoatMove(){
 function doCPU(){
   if(gameOver||cpuThinking)return;
   cpuThinking=true;setMsg(t('cpuThinking'));
-  updateUndoButton();
   setTimeout(()=>{
     let mv;
     if(turn==='T'){
@@ -512,7 +585,7 @@ function doCPU(){
         playMoveSound();
       }
     }
-    cpuThinking=false; recordState(); renderAll(); updateUndoButton(); checkWin();
+    cpuThinking=false; recordState(); renderAll(); checkWin();
     if(lastCPUMove)setTimeout(()=>{lastCPUMove=null;renderAll();},2000);
   },400);
 }
@@ -526,29 +599,25 @@ function checkWin(){
   const state = JSON.stringify(board) + turn + phase;
   if (boardHistory[state] >= 5) {
     winner = 'D'; gameOver = true; renderAll(); playLoseSound();
-    setTimeout(() => alert(t('drawMsg')), 500);
     return;
   }
 
   if(captured>=5){
     winner='T';gameOver=true;renderAll();
-    updateStats('T');
+    if (playerSide === 'T') recordWin(); else recordLoss();
     if (winner === playerSide) playWinSound(); else playLoseSound();
-    setTimeout(() => alert(winner === playerSide ? t('youWin') : t('cpuWin')), 500);
   }
   else if(tigerTrapped()){
     winner='G';gameOver=true;renderAll();
-    updateStats('G');
+    if (playerSide === 'G') recordWin(); else recordLoss();
     if (winner === playerSide) playWinSound(); else playLoseSound();
-    setTimeout(() => alert(winner === playerSide ? t('youWin') : t('cpuWin')), 500);
   } else if (turn === 'G' && phase === 2) {
     let hasMove = false;
     for(let r=0;r<5;r++)for(let c=0;c<5;c++){if(board[r][c]==='G' && getMoves(r,c).length > 0) hasMove = true;}
     if (!hasMove) {
       winner = 'T'; gameOver = true; renderAll();
-      updateStats('T');
+      if (playerSide === 'T') recordWin(); else recordLoss();
       if (winner === playerSide) playWinSound(); else playLoseSound();
-      setTimeout(() => alert(winner === playerSide ? t('youWin') : t('cpuWin')), 500);
     }
   }
 }
@@ -572,31 +641,36 @@ function drawBoard(){
       const f=pt(from[0],from[1]),t=pt(to[0],to[1]);
       ctx.beginPath();ctx.setLineDash([5,5]);ctx.strokeStyle='rgba(255,165,0,0.6)';ctx.lineWidth=3;ctx.moveTo(f.x,f.y);ctx.lineTo(t.x,t.y);ctx.stroke();ctx.setLineDash([]);
       ctx.beginPath();ctx.arc(f.x,f.y,15,0,Math.PI*2);ctx.strokeStyle='rgba(255,165,0,0.4)';ctx.lineWidth=2;ctx.stroke();
-    }
-    const tp=pt(to[0],to[1]);
-    ctx.beginPath();ctx.arc(tp.x,tp.y,16,0,Math.PI*2);ctx.strokeStyle='rgba(255,165,0,0.8)';ctx.lineWidth=3;ctx.stroke();
-  }
-}
-
-function drawPieces(){
-  for(let r=0;r<5;r++)for(let c=0;c<5;c++){
-    const p=board[r][c];if(!p)continue;
-    const{x,y}=pt(r,c);const isSel=selected&&selected[0]===r&&selected[1]===c;
-    if(p==='T'){
-      ctx.beginPath();ctx.arc(x,y,13,0,Math.PI*2);ctx.fillStyle=isSel?'#e07000':'#c45a00';ctx.fill();
-      ctx.strokeStyle='#7a3500';ctx.lineWidth=1.5;ctx.stroke();
-      ctx.fillStyle='#fff';ctx.font='bold 10px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('T',x,y);
+      ctx.beginPath();ctx.arc(t.x,t.y,16,0,Math.PI*2);ctx.strokeStyle='rgba(255,165,0,0.8)';ctx.lineWidth=3;ctx.stroke();
     } else {
-      ctx.beginPath();ctx.arc(x,y,11,0,Math.PI*2);ctx.fillStyle=isSel?'#b8d098':'#e8e0c8';ctx.fill();
-      ctx.strokeStyle='#6a7a4a';ctx.lineWidth=1.5;ctx.stroke();
-      ctx.fillStyle='#3a5a1a';ctx.font='bold 10px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('G',x,y);
+      const t=pt(to[0],to[1]);
+      ctx.beginPath();ctx.arc(t.x,t.y,16,0,Math.PI*2);ctx.strokeStyle='rgba(255,165,0,0.8)';ctx.lineWidth=3;ctx.stroke();
     }
   }
+
   if(selected&&board[selected[0]][selected[1]]){
     const ms=getMoves(selected[0],selected[1]);
     for(const m of ms){const{x,y}=pt(m.r,m.c);ctx.beginPath();ctx.arc(x,y,10,0,Math.PI*2);ctx.fillStyle='rgba(50,120,255,0.35)';ctx.fill();ctx.strokeStyle='rgba(50,120,255,0.8)';ctx.lineWidth=2;ctx.stroke();}
   } else if(turn===playerSide && turn==='G' && phase===1){
     for(let r=0;r<5;r++)for(let c=0;c<5;c++){if(!board[r][c]){const{x,y}=pt(r,c);ctx.beginPath();ctx.arc(x,y,7,0,Math.PI*2);ctx.fillStyle='rgba(50,120,255,0.15)';ctx.fill();ctx.strokeStyle='rgba(50,120,255,0.4)';ctx.lineWidth=1.5;ctx.stroke();}}}
+}
+
+function drawPieces(){
+  for(let r=0;r<5;r++)for(let c=0;c<5;c++){
+    const p=board[r][c];if(!p)continue;
+    const{x,y}=pt(r,c);
+    const sel=selected&&selected[0]===r&&selected[1]===c;
+    ctx.beginPath();
+    ctx.arc(x,y,p==='T'?14:12,0,Math.PI*2);
+    ctx.fillStyle=p==='T'?(sel?'#E07000':'#C45A00'):(sel?'#B8D098':'#E8E0C8');
+    ctx.fill();
+    ctx.strokeStyle=p==='T'?'#7a3500':'#6a7a4a';
+    ctx.lineWidth=3;ctx.stroke();
+    ctx.fillStyle=p==='T'?'#fff':'#3a5a1a';
+    ctx.font='bold 11px sans-serif';
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(p,x,y+0.5);
+  }
 }
 
 function setMsg(tx){document.getElementById('status-msg').textContent=tx;}
@@ -609,21 +683,35 @@ function renderAll(){
   for(let i=0;i<20;i++){const d=document.createElement('div');d.className='gi'+(i>=goatsLeft?' used':'');tray.appendChild(d);}
   const pill=document.getElementById('status-pill');
   const msgEl=document.getElementById('status-msg');
-  msgEl.className = '';
+  const goBanner=document.getElementById('game-over-banner');
+  const goTitle=document.getElementById('go-title');
+  const goSub=document.getElementById('go-sub');
+
   if(gameOver){
+    goBanner.style.display = 'block';
+    msgEl.style.display = 'none';
     if (winner === 'D') {
       pill.className = 'status-pill pill-draw';
       pill.textContent = t('drawTitle');
-      msgEl.className = 'msg-draw';
-      setMsg(t('drawMsg'));
+      goTitle.textContent = t('drawTitle');
+      goTitle.style.color = '#d32f2f';
+      goBanner.style.background = '#ffebee';
+      goBanner.style.borderColor = '#d32f2f';
+      goSub.textContent = t('drawMsg');
       return;
     }
     const pw=winner===playerSide;
     pill.className='status-pill '+(pw?'pill-win':'pill-lose');
     pill.textContent=pw?t('youWin'):t('cpuWin');
-    msgEl.className = pw ? 'msg-win' : 'msg-lose';
-    setMsg(winner==='T'?t('tigerWinMsg'):t('goatWinMsg'));
+    goTitle.textContent = pw ? t('youWin') : t('cpuWin');
+    goTitle.style.color = pw ? '#2e7d32' : '#d32f2f';
+    goBanner.style.background = pw ? '#e8f5e9' : '#ffebee';
+    goBanner.style.borderColor = pw ? '#2e7d32' : '#d32f2f';
+    goSub.textContent = winner==='T'?t('tigerWinMsg'):t('goatWinMsg');
     return;
+  } else {
+    goBanner.style.display = 'none';
+    msgEl.style.display = 'block';
   }
   const isPlayer=turn===playerSide;
   pill.className='status-pill '+(isPlayer?'pill-player':'pill-cpu');
@@ -650,7 +738,6 @@ function handleClick(r,c){
   if(playerSide==='G'){
     if(phase===1){
       if(board[r][c])return;
-      saveSnapshot();
       board[r][c]='G';goatsLeft--;if(goatsLeft===0)phase=2;selected=null;turn='T';
       playMoveSound();
       recordState(); renderAll();checkWin();if(!gameOver)setTimeout(doCPU,300);
@@ -658,7 +745,6 @@ function handleClick(r,c){
       if(selected){
         const ms=getMoves(selected[0],selected[1]);const mv=ms.find(m=>m.r===r&&m.c===c);
         if(mv){
-          saveSnapshot();
           board[selected[0]][selected[1]]=null;board[r][c]='G';selected=null;turn='T';
           playMoveSound();
           recordState();renderAll();checkWin();if(!gameOver)setTimeout(doCPU,300);
@@ -671,7 +757,6 @@ function handleClick(r,c){
     if(selected){
       const ms=getMoves(selected[0],selected[1]);const mv=ms.find(m=>m.r===r&&m.c===c);
       if(mv){
-        saveSnapshot();
         const sr=selected[0],sc=selected[1];board[sr][sc]=null;board[r][c]='T';
         const i=tigers.findIndex(x=>x[0]===sr&&x[1]===sc);if(i>=0)tigers[i]=[r,c];
         if(mv.capture){board[mv.capture[0]][mv.capture[1]]=null;captured++;playCaptureSound();}

@@ -97,7 +97,7 @@ val stringsEN = LocalizedStrings(
     selectTiger = "Tap a tiger to move it", moveTiger = "Tap a highlighted point to move or capture",
     cpuThinking = "Thinking...",
     tigerWinMsg = "Tigers captured 5 goats — tigers win!", goatWinMsg = "All tigers trapped — goats win!",
-    statGoat = "Goat Wins", statTiger = "Tiger Wins", statStreak = "Streak", statBestStreak = "Best Streak",
+    statGoat = "Goat", statTiger = "Tiger", statStreak = "Streak", statBestStreak = "Best",
     drawMsg = "Game drawn — too many repetitions", drawTitle = "DRAW!",
     diffTitle = "Select Difficulty", diffEasy = "Easy", diffHard = "Hard",
     tutStep1Title = "1. Board & Objective",
@@ -127,7 +127,7 @@ val stringsNP = LocalizedStrings(
     selectTiger = "सार्न बाघमा थिच्नुहोस्", moveTiger = "हाइलाइट भएको ठाउँमा थिच्नुहोस् वा खानुहोस्",
     cpuThinking = "सोच्दैछ...",
     tigerWinMsg = "बाघले ५ बाख्रा खायो — बाघ जित्यो!", goatWinMsg = "सबै बाघ थुनियो — बाख्रा जित्यो!",
-    statGoat = "बाख्राको जित", statTiger = "बाघको जित", statStreak = "श्रृङ्खला", statBestStreak = "उत्कृष्ट",
+    statGoat = "बाख्रा", statTiger = "बाघ", statStreak = "श्रृङ्खला", statBestStreak = "उत्कृष्ट",
     drawMsg = "खेल बराबरी भयो — धेरै पटक दोहोरियो", drawTitle = "बराबरी!",
     diffTitle = "कठिनाई छान्नुहोस्", diffEasy = "सजिलो", diffHard = "गाह्रो",
     tutStep1Title = "१. बोर्ड र लक्ष्य",
@@ -352,8 +352,8 @@ fun BaghChalApp() {
                         .padding(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // Trigger re-composition when gameTrigger changes
-                    key(gameTrigger) {
+                    // Trigger re-composition when gameTrigger, screen, or stats change
+                    key(gameTrigger, currentScreen, StatsManager.goatWins, StatsManager.tigerWins, StatsManager.currentStreak) {
                         when (currentScreen) {
                             AppScreen.LANG_SELECT -> {
                                 Text("बाघ चाल", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1A1A1B))
@@ -843,6 +843,41 @@ fun BaghChalApp() {
                                                 color = Color(0xFF1A1A1B),
                                                 textAlign = TextAlign.Center
                                             )
+
+                                            Spacer(modifier = Modifier.height(8.dp))
+
+                                            // Live Updated Player Stats Row on Game Over
+                                            Card(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.85f)),
+                                                shape = RoundedCornerShape(8.dp)
+                                            ) {
+                                                Row(
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .padding(8.dp),
+                                                    horizontalArrangement = Arrangement.SpaceEvenly,
+                                                    verticalAlignment = Alignment.CenterVertically
+                                                ) {
+                                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                                        Text("🔥 ${StatsManager.currentStreak}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color(0xFFC45A00))
+                                                        Text(str.statStreak, fontSize = 9.sp, color = Color(0xFF606770))
+                                                    }
+                                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                                        Text("🏆 ${StatsManager.bestStreak}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color(0xFF2E7D32))
+                                                        Text(str.statBestStreak, fontSize = 9.sp, color = Color(0xFF606770))
+                                                    }
+                                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                                        Text("🐐 ${StatsManager.goatWins}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color(0xFF3B5A1A))
+                                                        Text(str.statGoat, fontSize = 9.sp, color = Color(0xFF606770))
+                                                    }
+                                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                                        Text("🐅 ${StatsManager.tigerWins}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color(0xFF7A3500))
+                                                        Text(str.statTiger, fontSize = 9.sp, color = Color(0xFF606770))
+                                                    }
+                                                }
+                                            }
+
                                             Spacer(modifier = Modifier.height(12.dp))
                                             Button(
                                                 onClick = {
