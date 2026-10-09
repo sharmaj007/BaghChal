@@ -291,14 +291,18 @@ function undoMove() {
 function loadStats() {
   const saved = localStorage.getItem('bagh_chal_stats');
   if (saved) {
-    stats = JSON.parse(saved);
+    try { stats = JSON.parse(saved); } catch(e){}
   }
-  document.getElementById('stat-goat').textContent = stats.G;
-  document.getElementById('stat-tiger').textContent = stats.T;
+  if (!stats) stats = { G: 0, T: 0 };
+  const gEl = document.getElementById('stat-goat');
+  const tEl = document.getElementById('stat-tiger');
+  if (gEl) gEl.textContent = stats.G || 0;
+  if (tEl) tEl.textContent = stats.T || 0;
 }
 
 function updateStats(w) {
-  stats[w]++;
+  if (!stats) stats = { G: 0, T: 0 };
+  stats[w] = (stats[w] || 0) + 1;
   localStorage.setItem('bagh_chal_stats', JSON.stringify(stats));
   loadStats();
 }
