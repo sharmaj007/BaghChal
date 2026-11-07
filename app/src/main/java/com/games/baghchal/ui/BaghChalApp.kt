@@ -92,10 +92,12 @@ val stringsEN = LocalizedStrings(
     btnTutorial = "📖 How to Play / Tutorial",
     yourTurn = "Your turn", cpuTurn = "Thinking...", youWin = "YOU WIN!", cpuWin = "COMPUTER WINS",
     capLabel = "Goats captured", leftLabel = "Goats to place", trayLabel = "Goat tray",
-    placeGoat = "Tap any empty point to place a goat",
-    selectGoat = "Tap your goat to move it", moveGoat = "Tap a highlighted point to move",
-    selectTiger = "Tap a tiger to move it", moveTiger = "Tap a highlighted point to move or capture",
-    cpuThinking = "Thinking...",
+    placeGoat = "👇 Touch an empty spot on the board to place a Goat",
+    selectGoat = "🐐 Touch a Goat on the board to select & move it",
+    moveGoat = "🎯 Touch a highlighted spot to move 1 step",
+    selectTiger = "🐅 Touch a Tiger on the board to select & move it",
+    moveTiger = "🎯 Touch a highlighted spot to move or jump capture",
+    cpuThinking = "⏳ Computer is thinking...",
     tigerWinMsg = "Tigers captured 5 goats — tigers win!", goatWinMsg = "All tigers trapped — goats win!",
     statGoat = "Goat", statTiger = "Tiger", statStreak = "Streak", statBestStreak = "Best",
     drawMsg = "Game drawn — too many repetitions", drawTitle = "DRAW!",
@@ -122,10 +124,12 @@ val stringsNP = LocalizedStrings(
     btnTutorial = "📖 कसरी खेल्ने / ट्यूटोरियल",
     yourTurn = "तपाईंको पालो", cpuTurn = "सोच्दैछ...", youWin = "तपाईं जित्नुभयो!", cpuWin = "कम्प्युटर जित्यो",
     capLabel = "खाइएका बाख्रा", leftLabel = "राख्न बाँकी बाख्रा", trayLabel = "बाख्रा ट्रे",
-    placeGoat = "खाली ठाउँमा थिचेर बाख्रा राख्नुहोस्",
-    selectGoat = "सार्न बाख्रामा थिच्नुहोस्", moveGoat = "हाइलाइट भएको ठाउँमा थिच्नुहोस्",
-    selectTiger = "सार्न बाघमा थिच्नुहोस्", moveTiger = "हाइलाइट भएको ठाउँमा थिच्नुहोस् वा खानुहोस्",
-    cpuThinking = "सोच्दैछ...",
+    placeGoat = "👇 बोर्डको खाली ठाउँमा थिचेर बाख्रा राख्नुहोस्",
+    selectGoat = "🐐 सार्नको लागि बोर्डमा रहेको बाख्रामा थिच्नुहोस्",
+    moveGoat = "🎯 बाख्रा सार्न हाइलाइट भएको ठाउँमा थिच्नुहोस्",
+    selectTiger = "🐅 सार्नको लागि बोर्डमा रहेको बाघमा थिच्नुहोस्",
+    moveTiger = "🎯 सार्न वा बाख्रा उफ्रेर खान हाइलाइट भएको ठाउँमा थिच्नुहोस्",
+    cpuThinking = "⏳ कम्प्युटर सोच्दैछ...",
     tigerWinMsg = "बाघले ५ बाख्रा खायो — बाघ जित्यो!", goatWinMsg = "सबै बाघ थुनियो — बाख्रा जित्यो!",
     statGoat = "बाख्रा", statTiger = "बाघ", statStreak = "श्रृङ्खला", statBestStreak = "उत्कृष्ट",
     drawMsg = "खेल बराबरी भयो — धेरै पटक दोहोरियो", drawTitle = "बराबरी!",
@@ -175,7 +179,6 @@ fun BaghChalApp() {
 
     var selectedPoint by remember { mutableStateOf<Pair<Int, Int>?>(null) }
     var validMoves by remember { mutableStateOf<List<Move>>(emptyList()) }
-    var statusMsg by remember { mutableStateOf("") }
     var isCpuThinking by remember { mutableStateOf(false) }
     var gameTrigger by remember { mutableIntStateOf(0) }
 
@@ -184,7 +187,6 @@ fun BaghChalApp() {
     fun runCpuTurn() {
         if (engine.isGameOver || isCpuThinking || engine.turn == playerSide) return
         isCpuThinking = true
-        statusMsg = str.cpuThinking
 
         scope.launch {
             delay(450)
@@ -231,14 +233,10 @@ fun BaghChalApp() {
                     SoundManager.playWinSound()
                     VibrationManager.vibrateWin()
                     StatsManager.recordWin(playerSide)
-                    statusMsg = str.youWin
                 } else {
                     SoundManager.playLoseSound()
                     if (!engine.isDraw) StatsManager.recordLoss()
-                    statusMsg = if (engine.isDraw) str.drawMsg else str.cpuWin
                 }
-            } else {
-                statusMsg = if (engine.turn == playerSide) str.yourTurn else str.cpuTurn
             }
         }
     }
@@ -248,7 +246,6 @@ fun BaghChalApp() {
         engine.resetGame()
         selectedPoint = null
         validMoves = emptyList()
-        statusMsg = if (playerSide == Turn.GOAT) str.yourTurn else str.cpuTurn
         gameTrigger++
         SoundManager.playMoveSound()
         VibrationManager.vibrateMove()
@@ -267,14 +264,11 @@ fun BaghChalApp() {
                     SoundManager.playWinSound()
                     VibrationManager.vibrateWin()
                     StatsManager.recordWin(playerSide)
-                    statusMsg = str.youWin
                 } else {
                     SoundManager.playLoseSound()
                     if (!engine.isDraw) StatsManager.recordLoss()
-                    statusMsg = if (engine.isDraw) str.drawMsg else str.cpuWin
                 }
             } else {
-                statusMsg = str.cpuTurn
                 runCpuTurn()
             }
         }
@@ -431,7 +425,7 @@ fun BaghChalApp() {
                                             Box(
                                                 modifier = Modifier.size(44.dp).background(Color(0xFFE8F0DC), CircleShape),
                                                 contentAlignment = Alignment.Center
-                                            ) { Text("G", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color(0xFF3B5A1A)) }
+                                            ) { Text("🐐", fontSize = 22.sp) }
                                             Spacer(modifier = Modifier.height(8.dp))
                                             Text(str.goatName, fontSize = 15.sp, fontWeight = FontWeight.Bold)
                                             Text(str.goatDesc, fontSize = 11.sp, color = Color(0xFF606770), textAlign = TextAlign.Center)
@@ -453,7 +447,7 @@ fun BaghChalApp() {
                                             Box(
                                                 modifier = Modifier.size(44.dp).background(Color(0xFFF5E0C8), CircleShape),
                                                 contentAlignment = Alignment.Center
-                                            ) { Text("T", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color(0xFF7A3500)) }
+                                            ) { Text("🐅", fontSize = 22.sp) }
                                             Spacer(modifier = Modifier.height(8.dp))
                                             Text(str.tigerName, fontSize = 15.sp, fontWeight = FontWeight.Bold)
                                             Text(str.tigerDesc, fontSize = 11.sp, color = Color(0xFF606770), textAlign = TextAlign.Center)
@@ -580,9 +574,9 @@ fun BaghChalApp() {
                                         when (tutorialStep) {
                                             1 -> {
                                                 Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                                                    Box(modifier = Modifier.size(36.dp).background(Color(0xFFF5E0C8), CircleShape), contentAlignment = Alignment.Center) { Text("T", fontWeight = FontWeight.Bold, color = Color(0xFF7A3500)) }
+                                                    Box(modifier = Modifier.size(36.dp).background(Color(0xFFF5E0C8), CircleShape), contentAlignment = Alignment.Center) { Text("🐅", fontSize = 18.sp) }
                                                     Text("vs", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                                                    Box(modifier = Modifier.size(36.dp).background(Color(0xFFE8F0DC), CircleShape), contentAlignment = Alignment.Center) { Text("G", fontWeight = FontWeight.Bold, color = Color(0xFF3B5A1A)) }
+                                                    Box(modifier = Modifier.size(36.dp).background(Color(0xFFE8F0DC), CircleShape), contentAlignment = Alignment.Center) { Text("🐐", fontSize = 18.sp) }
                                                 }
                                             }
                                             2 -> {
@@ -594,9 +588,9 @@ fun BaghChalApp() {
                                                 Text(str.tutDiagStep3, fontSize = 12.sp, color = Color(0xFF606770))
                                                 Spacer(modifier = Modifier.height(8.dp))
                                                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                                                    Box(modifier = Modifier.size(32.dp).background(Color(0xFFF5E0C8), CircleShape), contentAlignment = Alignment.Center) { Text("T", fontWeight = FontWeight.Bold, color = Color(0xFF7A3500)) }
+                                                    Box(modifier = Modifier.size(32.dp).background(Color(0xFFF5E0C8), CircleShape), contentAlignment = Alignment.Center) { Text("🐅", fontSize = 16.sp) }
                                                     Text("➔", fontWeight = FontWeight.Bold)
-                                                    Box(modifier = Modifier.size(32.dp).background(Color(0xFFFFCDD2), CircleShape), contentAlignment = Alignment.Center) { Text("G", fontWeight = FontWeight.Bold, color = Color(0xFFD32F2F)) }
+                                                    Box(modifier = Modifier.size(32.dp).background(Color(0xFFFFCDD2), CircleShape), contentAlignment = Alignment.Center) { Text("🐐", fontSize = 16.sp) }
                                                     Text("➔", fontWeight = FontWeight.Bold)
                                                     Box(modifier = Modifier.size(32.dp).background(Color(0xFFE8F5E9), CircleShape).border(1.5.dp, Color(0xFF2E7D32), CircleShape), contentAlignment = Alignment.Center) { Text("🎯", fontSize = 12.sp) }
                                                 }
@@ -605,9 +599,9 @@ fun BaghChalApp() {
                                                 Text(str.tutDiagStep4, fontSize = 12.sp, color = Color(0xFF606770))
                                                 Spacer(modifier = Modifier.height(8.dp))
                                                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                                                    Box(modifier = Modifier.size(28.dp).background(Color(0xFFE8F0DC), CircleShape), contentAlignment = Alignment.Center) { Text("G", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFF3B5A1A)) }
-                                                    Box(modifier = Modifier.size(32.dp).background(Color(0xFFF5E0C8), CircleShape).border(2.dp, Color(0xFFD32F2F), CircleShape), contentAlignment = Alignment.Center) { Text("T", fontWeight = FontWeight.Bold, color = Color(0xFF7A3500)) }
-                                                    Box(modifier = Modifier.size(28.dp).background(Color(0xFFE8F0DC), CircleShape), contentAlignment = Alignment.Center) { Text("G", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFF3B5A1A)) }
+                                                    Box(modifier = Modifier.size(28.dp).background(Color(0xFFE8F0DC), CircleShape), contentAlignment = Alignment.Center) { Text("🐐", fontSize = 14.sp) }
+                                                    Box(modifier = Modifier.size(32.dp).background(Color(0xFFF5E0C8), CircleShape).border(2.dp, Color(0xFFD32F2F), CircleShape), contentAlignment = Alignment.Center) { Text("🐅", fontSize = 16.sp) }
+                                                    Box(modifier = Modifier.size(28.dp).background(Color(0xFFE8F0DC), CircleShape), contentAlignment = Alignment.Center) { Text("🐐", fontSize = 14.sp) }
                                                 }
                                             }
                                         }
@@ -893,7 +887,54 @@ fun BaghChalApp() {
                                         }
                                     }
                                 } else {
-                                    Text(statusMsg, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF1A1A1B))
+                                    val dynamicInstruction = when {
+                                        isCpuThinking || engine.turn != playerSide -> str.cpuThinking
+                                        playerSide == Turn.GOAT -> {
+                                            if (engine.phase == GamePhase.PLACEMENT && engine.goatsLeft > 0) {
+                                                str.placeGoat
+                                            } else if (selectedPoint == null) {
+                                                str.selectGoat
+                                            } else {
+                                                str.moveGoat
+                                            }
+                                        }
+                                        else -> {
+                                            if (selectedPoint == null) {
+                                                str.selectTiger
+                                            } else {
+                                                str.moveTiger
+                                            }
+                                        }
+                                    }
+
+                                    Card(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(top = 4.dp),
+                                        colors = CardDefaults.cardColors(
+                                            containerColor = if (engine.turn == playerSide && !isCpuThinking) Color(0xFFEBF3FA) else Color(0xFFF0F2F5)
+                                        ),
+                                        border = BorderStroke(
+                                            width = 1.dp,
+                                            color = if (engine.turn == playerSide && !isCpuThinking) Color(0xFF378ADD) else Color(0xFFCCD0D5)
+                                        ),
+                                        shape = RoundedCornerShape(10.dp)
+                                    ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(10.dp),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Text(
+                                                text = dynamicInstruction,
+                                                fontSize = 13.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                color = Color(0xFF1A1A1B),
+                                                textAlign = TextAlign.Center
+                                            )
+                                        }
+                                    }
                                 }
                             }
                         }

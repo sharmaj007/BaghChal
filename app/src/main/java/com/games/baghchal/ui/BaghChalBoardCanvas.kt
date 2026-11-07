@@ -13,7 +13,6 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.sp
 import com.games.baghchal.engine.BaghChalEngine
@@ -102,7 +101,7 @@ fun BaghChalBoardCanvas(
             }
         }
 
-        // Highlight Last CPU Move
+        // Highlight Last CPU Move (Orange Ring Indicator)
         engine.lastCPUMove?.let { lastMv ->
             if (!lastMv.isPlacement && lastMv.fromRow in 0..4 && lastMv.fromCol in 0..4 && lastMv.toRow in 0..4 && lastMv.toCol in 0..4) {
                 val fromPt = getPt(lastMv.fromRow, lastMv.fromCol)
@@ -115,11 +114,11 @@ fun BaghChalBoardCanvas(
                     strokeWidth = 3f,
                     pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f), 0f)
                 )
-                drawCircle(Color(0x66FFA500), radius = step * 0.38f, center = fromPt, style = Stroke(width = 2f))
-                drawCircle(Color(0xCCFFA500), radius = step * 0.40f, center = toPt, style = Stroke(width = 3f))
+                drawCircle(Color(0x66FFA500), radius = step * 0.30f, center = fromPt, style = Stroke(width = 2f))
+                drawCircle(Color(0xCCFFA500), radius = step * 0.32f, center = toPt, style = Stroke(width = 3f))
             } else if (lastMv.toRow in 0..4 && lastMv.toCol in 0..4) {
                 val toPt = getPt(lastMv.toRow, lastMv.toCol)
-                drawCircle(Color(0xCCFFA500), radius = step * 0.40f, center = toPt, style = Stroke(width = 3f))
+                drawCircle(Color(0xCCFFA500), radius = step * 0.32f, center = toPt, style = Stroke(width = 3f))
             }
         }
 
@@ -127,52 +126,48 @@ fun BaghChalBoardCanvas(
         if (selectedPoint != null) {
             for (mv in validMoves) {
                 val targetPt = getPt(mv.toRow, mv.toCol)
-                drawCircle(Color(0x593278FF), radius = step * 0.28f, center = targetPt)
-                drawCircle(Color(0xCC3278FF), radius = step * 0.28f, center = targetPt, style = Stroke(width = 2f))
+                drawCircle(Color(0x593278FF), radius = step * 0.22f, center = targetPt)
+                drawCircle(Color(0xCC3278FF), radius = step * 0.22f, center = targetPt, style = Stroke(width = 2f))
             }
         } else if (engine.turn == playerSide && engine.turn == Turn.GOAT && engine.phase == com.games.baghchal.engine.GamePhase.PLACEMENT) {
             for (r in 0..4) {
                 for (c in 0..4) {
                     if (engine.board[r][c] == null) {
                         val pt = getPt(r, c)
-                        drawCircle(Color(0x263278FF), radius = step * 0.20f, center = pt)
-                        drawCircle(Color(0x663278FF), radius = step * 0.20f, center = pt, style = Stroke(width = 1.5f))
+                        drawCircle(Color(0x263278FF), radius = step * 0.16f, center = pt)
+                        drawCircle(Color(0x663278FF), radius = step * 0.16f, center = pt, style = Stroke(width = 1.5f))
                     }
                 }
             }
         }
 
-        // Draw Pieces
-        val tigerRadius = step * 0.35f
-        val goatRadius = step * 0.30f
-
+        // Draw Pieces without background filled circles (Tiger 🐅 = 16sp, Goat 🐐 = 10sp realistic size)
         for (r in 0..4) {
             for (c in 0..4) {
                 val piece = engine.board[r][c] ?: continue
                 val pt = getPt(r, c)
                 val isSel = selectedPoint != null && selectedPoint.first == r && selectedPoint.second == c
 
-                if (piece == Piece.TIGER) {
-                    val bg = if (isSel) Color(0xFFE07000) else Color(0xFFC45A00)
-                    drawCircle(bg, radius = tigerRadius, center = pt)
-                    drawCircle(Color(0xFF7A3500), radius = tigerRadius, center = pt, style = Stroke(width = 3f))
+                // Selection ring highlight when user taps piece
+                if (isSel) {
+                    val selColor = if (piece == Piece.TIGER) Color(0xFFC45A00) else Color(0xFF2E7D32)
+                    drawCircle(selColor.copy(alpha = 0.25f), radius = step * 0.28f, center = pt)
+                    drawCircle(selColor, radius = step * 0.28f, center = pt, style = Stroke(width = 3f))
+                }
 
+                if (piece == Piece.TIGER) {
                     val layoutResult = textMeasurer.measure(
-                        text = "T",
-                        style = TextStyle(color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                        text = "🐅",
+                        style = TextStyle(fontSize = (step * 0.32f).sp)
                     )
                     drawText(
                         textLayoutResult = layoutResult,
                         topLeft = Offset(pt.x - layoutResult.size.width / 2f, pt.y - layoutResult.size.height / 2f)
                     )
                 } else {
-                    val bg = if (isSel) Color(0xFFB8D098) else Color(0xFFE8E0C8)
-                    drawCircle(bg, radius = goatRadius, center = pt)
-                    drawCircle(Color(0xFF6A7A4A), radius = goatRadius, center = pt, style = Stroke(width = 3f))
-
                     val layoutResult = textMeasurer.measure(
-                        text = "G",
-                        style = TextStyle(color = Color(0xFF3A5A1A), fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                        text = "🐐",
+                        style = TextStyle(fontSize = (step * 0.19f).sp)
                     )
                     drawText(
                         textLayoutResult = layoutResult,

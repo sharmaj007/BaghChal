@@ -190,10 +190,12 @@ const T={
     btnTutorial:'📖 How to Play / Tutorial',
     yourTurn:'Your turn',cpuTurn:'Thinking...',youWin:'YOU WIN!',cpuWin:'COMPUTER WINS',
     capLabel:'Goats captured',leftLabel:'Goats to place',trayLabel:'Goat tray',
-    placeGoat:'Tap any empty point to place a goat',
-    selectGoat:'Tap your goat to move it',moveGoat:'Tap a highlighted point to move',
-    selectTiger:'Tap a tiger to move it',moveTiger:'Tap a highlighted point to move or capture',
-    cpuThinking:'Thinking...',
+    placeGoat:'👇 Tap any empty intersection on the board to place a Goat',
+    selectGoat:'🐐 All 20 goats placed! Tap any Goat on the board to select & move it',
+    moveGoat:'🎯 Tap a highlighted blue dot to move your Goat 1 step along grid lines',
+    selectTiger:'🐅 Tap a Tiger on the board to select it',
+    moveTiger:'🎯 Tap a highlighted dot to move 1 step OR jump over a Goat to CAPTURE it!',
+    cpuThinking:'⏳ Computer is thinking...',
     tigerWinMsg:'Tigers captured 5 goats — tigers win!',goatWinMsg:'All tigers trapped — goats win!',
     statGoat:'Goat', statTiger:'Tiger', statStreak:'Streak', statBestStreak:'Best', drawMsg:'Game drawn — too many repetitions', drawTitle:'DRAW!',
     diffTitle:'Select Difficulty', diffEasy:'Easy', diffHard:'Hard',
@@ -213,10 +215,12 @@ const T={
     btnTutorial:'📖 कसरी खेल्ने / ट्यूटोरियल',
     yourTurn:'तपाईंको पालो',cpuTurn:'सोच्दैछ...',youWin:'तपाईं जित्नुभयो!',cpuWin:'कम्प्युटर जित्यो',
     capLabel:'खाइएका बाख्रा',leftLabel:'राख्न बाँकी बाख्रा',trayLabel:'बाख्रा ट्रे',
-    placeGoat:'खाली ठाउँमा थिचेर बाख्रा राख्नुहोस्',
-    selectGoat:'सार्न बाख्रामा थिच्नुहोस्',moveGoat:'हाइलाइट भएको ठाउँमा थिच्नुहोस्',
-    selectTiger:'सार्न बाघमा थिच्नुहोस्',moveTiger:'हाइलाइट भएको ठाउँमा थिच्नुहोस् वा खानुहोस्',
-    cpuThinking:'सोच्दैछ...',
+    placeGoat:'👇 बोर्डको खाली ठाउँमा थिचेर बाख्रा राख्नुहोस्',
+    selectGoat:'🐐 २० वटै बाख्रा राखियो! सार्नको लागि बोर्डको बाख्रामा थिच्नुहोस्',
+    moveGoat:'🎯 बाख्रा सार्न हाइलाइट भएको निलो थोप्लोमा थिच्नुहोस्',
+    selectTiger:'🐅 सार्नको लागि बाघमा थिच्नुहोस्',
+    moveTiger:'🎯 सार्न वा बाख्रा उफ्रेर खान हाइलाइट भएको ठाउँमा थिच्नुहोस्!',
+    cpuThinking:'⏳ कम्प्युटर सोच्दैछ...',
     tigerWinMsg:'बाघले ५ बाख्रा खायो — बाघ जित्यो!',goatWinMsg:'सबै बाघ थुनियो — बाख्रा जित्यो!',
     statGoat:'बाख्रा', statTiger:'बाघ', statStreak:'श्रृङ्खला', statBestStreak:'उत्कृष्ट', drawMsg:'खेल बराबरी भयो — धेरै पटक दोहोरियो', drawTitle:'बराबरी!',
     diffTitle:'कठिनाई छान्नुहोस्', diffEasy:'सजिलो', diffHard:'गाह्रो',
@@ -539,25 +543,44 @@ function minimax(brd,tig,cap,gl,ph,depth,alpha,beta,maxing){
 }
 
 function bestTigerMove(){
-  let best=-9999,bestMv=null;
   const moves=[];
   for(const[tr,tc]of tigers){for(let nr=0;nr<5;nr++)for(let nc=0;nc<5;nc++){if(!board[nr][nc]&&isAdj(tr,tc,nr,nc))moves.push({piece:'T',fr:tr,fc:tc,r:nr,c:nc,capture:null});if(board[nr][nc]==='G'&&isAdj(tr,tc,nr,nc)){const jr=nr+(nr-tr),jc=nc+(nc-tc);if(jr>=0&&jr<5&&jc>=0&&jc<5&&!board[jr][jc]&&isAdj(nr,nc,jr,jc))moves.push({piece:'T',fr:tr,fc:tc,r:jr,c:jc,capture:[nr,nc]});}}}
+  if(!moves.length) return null;
+  moves.sort(() => Math.random() - 0.5);
   moves.sort((a,b)=>(b.capture?1:0)-(a.capture?1:0));
   const d = difficulty === 'hard' ? 3 : 1;
-  for(const mv of moves){const{board:nb,tigers:nt,captured:nc}=applyMove(mv,board,tigers,captured);const v=minimax(nb,nt,nc,goatsLeft,phase,d,-9999,9999,false);if(v>best){best=v;bestMv=mv;}}
-  return bestMv;
+  let best = -9999;
+  const candidates = [];
+  for(const mv of moves){const{board:nb,tigers:nt,captured:nc}=applyMove(mv,board,tigers,captured);const v=minimax(nb,nt,nc,goatsLeft,phase,d,-9999,9999,false);if(v>best){best=v;}candidates.push({mv, v});}
+  const margin = difficulty === 'easy' ? 15 : 0;
+  const top = candidates.filter(c => c.v >= best - margin);
+  return top.length ? top[Math.floor(Math.random() * top.length)].mv : moves[0];
 }
 
 function bestGoatMove(){
   const d = difficulty === 'hard' ? 2 : 1;
   if(phase===1&&goatsLeft>0){
-    let best=9999,br=-1,bc=-1;
-    for(let r=0;r<5;r++)for(let c=0;c<5;c++){if(!board[r][c]){const nb=board.map(x=>[...x]);nb[r][c]='G';const v=minimax(nb,tigers,captured,goatsLeft-1,goatsLeft-1===0?2:1,d,-9999,9999,true);if(v<best){best=v;br=r;bc=c;}}}
-    return br>=0?{place:true,r:br,c:bc}:null;
+    const emptySpots = [];
+    for(let r=0;r<5;r++)for(let c=0;c<5;c++)if(!board[r][c]) emptySpots.push({r,c});
+    if(!emptySpots.length) return null;
+    emptySpots.sort(() => Math.random() - 0.5);
+    let best=9999;
+    const candidates = [];
+    for(const pt of emptySpots){const nb=board.map(x=>[...x]);nb[pt.r][pt.c]='G';const v=minimax(nb,tigers,captured,goatsLeft-1,goatsLeft-1===0?2:1,d,-9999,9999,true);if(v<best){best=v;}candidates.push({pt, v});}
+    const margin = difficulty === 'easy' ? 15 : 0;
+    const top = candidates.filter(c => c.v <= best + margin);
+    const chosen = top.length ? top[Math.floor(Math.random() * top.length)].pt : emptySpots[0];
+    return {place:true, r:chosen.r, c:chosen.c};
   } else {
-    let best=9999,bestMv=null;
-    for(let r=0;r<5;r++)for(let c=0;c<5;c++){if(board[r][c]==='G'){for(const m of getMoves(r,c)){const mv={piece:'G',fr:r,fc:c,...m};const{board:nb}=applyMove(mv,board,tigers,captured);const v=minimax(nb,tigers,captured,goatsLeft,phase,d,-9999,9999,true);if(v<best){best=v;bestMv=mv;}}}}
-    return bestMv;
+    const gms=[];for(let r=0;r<5;r++)for(let c=0;c<5;c++){if(board[r][c]==='G'){for(const m of getMoves(r,c)){gms.push({piece:'G',fr:r,fc:c,...m});}}}
+    if(!gms.length) return null;
+    gms.sort(() => Math.random() - 0.5);
+    let best=9999;
+    const candidates = [];
+    for(const mv of gms){const{board:nb}=applyMove(mv,board,tigers,captured);const v=minimax(nb,tigers,captured,goatsLeft,phase,d,-9999,9999,true);if(v<best){best=v;}candidates.push({mv, v});}
+    const margin = difficulty === 'easy' ? 15 : 0;
+    const top = candidates.filter(c => c.v <= best + margin);
+    return top.length ? top[Math.floor(Math.random() * top.length)].mv : gms[0];
   }
 }
 
@@ -660,16 +683,19 @@ function drawPieces(){
     const p=board[r][c];if(!p)continue;
     const{x,y}=pt(r,c);
     const sel=selected&&selected[0]===r&&selected[1]===c;
-    ctx.beginPath();
-    ctx.arc(x,y,p==='T'?14:12,0,Math.PI*2);
-    ctx.fillStyle=p==='T'?(sel?'#E07000':'#C45A00'):(sel?'#B8D098':'#E8E0C8');
-    ctx.fill();
-    ctx.strokeStyle=p==='T'?'#7a3500':'#6a7a4a';
-    ctx.lineWidth=3;ctx.stroke();
-    ctx.fillStyle=p==='T'?'#fff':'#3a5a1a';
-    ctx.font='bold 11px sans-serif';
+
+    if(sel){
+      ctx.beginPath();
+      ctx.arc(x,y,p==='T'?14:10,0,Math.PI*2);
+      ctx.fillStyle=p==='T'?'rgba(196,90,0,0.25)':'rgba(46,125,50,0.25)';
+      ctx.fill();
+      ctx.strokeStyle=p==='T'?'#C45A00':'#2E7D32';
+      ctx.lineWidth=3;ctx.stroke();
+    }
+
+    ctx.font=p==='T'?'17px sans-serif':'10px sans-serif';
     ctx.textAlign='center';ctx.textBaseline='middle';
-    ctx.fillText(p,x,y+0.5);
+    ctx.fillText(p==='T'?'🐅':'🐐',x,y+0.5);
   }
 }
 

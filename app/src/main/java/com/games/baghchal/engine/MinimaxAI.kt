@@ -7,16 +7,20 @@ class MinimaxAI(private val engine: BaghChalEngine) {
 
     fun findBestTigerMove(difficulty: Difficulty): Move? {
         val depth = if (difficulty == Difficulty.HARD) 3 else 1
-        var bestScore = -99999
-        var bestMove: Move? = null
 
         val tigerMoves = mutableListOf<Move>()
         for ((tr, tc) in engine.tigers) {
             tigerMoves.addAll(engine.getValidMoves(tr, tc))
         }
 
-        // Prioritize capture moves
+        if (tigerMoves.isEmpty()) return null
+        tigerMoves.shuffle()
+
+        // Prioritize capture moves first
         tigerMoves.sortByDescending { if (it.captureRow != null) 1 else 0 }
+
+        val candidates = mutableListOf<Pair<Move, Int>>()
+        var bestScore = -99999
 
         for (mv in tigerMoves) {
             val simulated = simulateTigerMove(engine, mv)
@@ -29,68 +33,91 @@ class MinimaxAI(private val engine: BaghChalEngine) {
             )
             if (score > bestScore) {
                 bestScore = score
-                bestMove = mv
             }
+            candidates.add(Pair(mv, score))
         }
-        return bestMove
+
+        val margin = if (difficulty == Difficulty.EASY) 15 else 0
+        val topCandidates = candidates.filter { it.second >= bestScore - margin }
+        return topCandidates.randomOrNull()?.first ?: candidates.maxByOrNull { it.second }?.first
     }
 
     fun findBestGoatMove(difficulty: Difficulty): Pair<Int, Int>? {
         val depth = if (difficulty == Difficulty.HARD) 2 else 1
 
         if (engine.phase == GamePhase.PLACEMENT && engine.goatsLeft > 0) {
-            var bestScore = 99999
-            var bestPoint: Pair<Int, Int>? = null
-
+            val emptySpots = mutableListOf<Pair<Int, Int>>()
             for (r in 0..4) {
                 for (c in 0..4) {
                     if (engine.board[r][c] == null) {
-                        val simulated = simulateGoatPlacement(engine, r, c)
-                        val score = minimax(
-                            simulated,
-                            depth - 1,
-                            alpha = -99999,
-                            beta = 99999,
-                            isMaximizing = true
-                        )
-                        if (score < bestScore) {
-                            bestScore = score
-                            bestPoint = Pair(r, c)
-                        }
+                        emptySpots.add(Pair(r, c))
                     }
                 }
             }
-            return bestPoint
+            if (emptySpots.isEmpty()) return null
+            emptySpots.shuffle()
+
+            val candidates = mutableListOf<Pair<Pair<Int, Int>, Int>>()
+            var bestScore = 99999
+
+            for (pt in emptySpots) {
+                val simulated = simulateGoatPlacement(engine, pt.first, pt.second)
+                val score = minimax(
+                    simulated,
+                    depth - 1,
+                    alpha = -99999,
+                    beta = 99999,
+                    isMaximizing = true
+                )
+                if (score < bestScore) {
+                    bestScore = score
+                }
+                candidates.add(Pair(pt, score))
+            }
+
+            val margin = if (difficulty == Difficulty.EASY) 15 else 0
+            val topCandidates = candidates.filter { it.second <= bestScore + margin }
+            return topCandidates.randomOrNull()?.first ?: candidates.minByOrNull { it.second }?.first
         }
         return null
     }
 
     fun findBestGoatMoveMovement(difficulty: Difficulty): Move? {
         val depth = if (difficulty == Difficulty.HARD) 2 else 1
-        var bestScore = 99999
-        var bestMove: Move? = null
 
+        val goatMoves = mutableListOf<Move>()
         for (r in 0..4) {
             for (c in 0..4) {
                 if (engine.board[r][c] == Piece.GOAT) {
-                    for (mv in engine.getValidMoves(r, c)) {
-                        val simulated = simulateGoatMove(engine, mv)
-                        val score = minimax(
-                            simulated,
-                            depth - 1,
-                            alpha = -99999,
-                            beta = 99999,
-                            isMaximizing = true
-                        )
-                        if (score < bestScore) {
-                            bestScore = score
-                            bestMove = mv
-                        }
-                    }
+                    goatMoves.addAll(engine.getValidMoves(r, c))
                 }
             }
         }
-        return bestMove
+
+        if (goatMoves.isEmpty()) return null
+        goatMoves.shuffle()
+
+        val candidates = mutableListOf<Pair<Move, Int>>()
+        var bestScore = 99999
+
+        for (mv in goatMoves) {
+            val simulated = simulateGoatMove(engine, mv)
+            val score = minimax(
+                simulated,
+                depth - 1,
+                alpha = -99999,
+                beta = 99999,
+                isMaximizing = true
+            )
+            if (score < bestScore) {
+                bestScore = score
+            }
+            candidates.add(Pair(mv, score))
+        }
+
+        val margin = if (difficulty == Difficulty.EASY) 15 else 0
+        val topCandidates = candidates.filter { it.second <= bestScore + margin }
+        return topCandidates.randomOrNull()?.first ?: candidates.minByOrNull { it.second }?.first
     }
 
     private fun evaluateScore(engineState: BaghChalEngine): Int {
