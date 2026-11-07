@@ -15,8 +15,8 @@ android {
         applicationId = "com.games.baghchal"
         minSdk = 24
         targetSdk = 36
-        versionCode = 16
-        versionName = "2.0"
+        versionCode = 20
+        versionName = "2.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
